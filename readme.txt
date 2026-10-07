@@ -4,6 +4,8 @@ In short, don't impersonate me or claim you wrote code you didn't.
 You are not allowed to resell this code or otherwise monetize it without my explicit permission and a contract.
 Any invocation of this code or its principles in your own must include a URL link to this repository, as well as my legal name ("David Root") and my affirmed name / "alias," "Pamela Thacker"
 
+
+
 FAQ
 
 "Why the unprofessionalism in your code?"
