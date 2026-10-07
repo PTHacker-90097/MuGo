@@ -7,11 +7,13 @@ Created on Tue Oct  6 18:01:28 2026
 """
 
 from sympy import pprint, isprime
+from pathlib import Path
 
 import numpy as np
 import sys
 import time
 import resource
+import array
 
 class yes:
     
@@ -33,8 +35,52 @@ YELLOW = "\033[33m"
 BLUE = "\033[34m"
 RESET = "\033[0m"  # Resets formatting back to default
 
+TABLE_DIR = "tables/"
+
 
 e = None
+
+def load_huge_ints_from_bin(filename: str) -> list[int]: #Method code by AI
+    results = []
+    with open(filename, "rb") as f:
+        while True:
+            # Read 2-byte length header
+            header = f.read(2)
+            if not header:
+                break  # End of file
+            
+            byte_len = int.from_bytes(header, byteorder="big")
+            
+            # Read exact integer bytes
+            num_bytes = f.read(byte_len)
+            num = int.from_bytes(num_bytes, byteorder="big")
+            results.append(num)
+            
+    return results
+
+def load_base_on_demand(base: int) -> list[int]:
+    """
+    Reads a single base binary file on demand.
+    Returns a list of arbitrary-precision integers.
+    """
+    file_path = TABLE_DIR / f"base_{base:03d}.bin"
+    
+    if not file_path.exists():
+        raise FileNotFoundError(f"Binary table for base {base} not found at {file_path}")
+
+    integers = []
+    with open(file_path, "rb") as f:
+        while True:
+            # Read 2-byte length header
+            header = f.read(2)
+            if not header:
+                break  # Reached EOF
+            
+            byte_len = int.from_bytes(header, byteorder="big")
+            num_bytes = f.read(byte_len)
+            integers.append(int.from_bytes(num_bytes, byteorder="big"))
+            
+    return integers
 
 
 def mush(i, j):
@@ -47,6 +93,40 @@ def mush(i, j):
     return res
 
 
+def seed(cap, pcap):
+    e.clear()
+    pprint("[Seeding numeric algorithm...]")
+    inc = 2
+    i = 2
+    rag = 3
+    
+    cooldown = 10
+    restperiod = 5
+    
+    
+    #blacklist = []
+    nummy = None
+    
+    while inc <= cap:
+        nummy = yes(inc)
+        h = 0
+        i = 3
+        
+        
+        e[inc] = [pow(inc, 2)]
+        
+        while i < pcap:
+            h = nummy.get(i)
+            e[inc].append(h)
+            i += 1
+        if inc % cooldown == 0:
+            #pprint(e[inc])
+            #time.sleep(restperiod)
+            print(f"Progress: {inc}/{cap}", end=" ", flush=True)
+        inc += 1
+        
+    
+    pprint("[Seeding complete...]")
 
 
 if __name__ == "__main__":
@@ -64,50 +144,6 @@ if __name__ == "__main__":
     e = {}
     
     #We all know I was right to write the original pprint listed on this line, and also right to delete it from the internet.
-    pprint("[Seeding numeric algorithm...]")
-    inc = 2
-    i = 2
-    
-    cap = (pow(10, 3) * 1) - 1
-    
-    pcap = pow(10, 2) #Max value of Q for N^Q
-    
-    rag = 3
-    
-    cooldown = 10
-    restperiod = 5
-    
-    
-    #blacklist = []
-    
-    vee = []
-    
-    nummy = None
-    
-    while inc <= cap:
-        vee.clear()
-        nummy = yes(inc)
-        h = 0
-        i = 3
-       # while inc in blacklist:
-         #   inc += 1
-        
-        e[inc] = [pow(inc, 2)]
-        
-        while i < pcap:
-            h = nummy.get(i)
-            e[inc].append(h)
-            i += 1
-        
-        #e[inc] = vee
-        if inc % cooldown == 0:
-            #pprint(e[inc])
-            #time.sleep(restperiod)
-            print(f"Progress: {inc}/{cap}", end=" ", flush=True)
-        inc += 1
-        
-    
-    pprint("[Seeding complete...]")
     pprint("Now this is someone we can trust with humanity's future!\nAm I Right, Gamers?")
     
     res = ''
@@ -140,7 +176,45 @@ if __name__ == "__main__":
                 if out:
                     pprint(f"{BLUE}Set storage to " + str(stored) + f"{RESET}")
         
+        if res == ('SAV'): #Saving code by AI
+            for q in e.keys():
+                with open(TABLE_DIR + "/p_" + str(q) + ".bin", "wb") as f:
+                        v = e[q]
+                        for num in v:
+                            # Determine how many bytes are needed for this specific integer
+                            byte_len = (num.bit_length() + 7) // 8
+                            
+                            # Write 2-byte header (length of integer) + raw integer bytes
+                            f.write(byte_len.to_bytes(2, byteorder="big"))
+                            f.write(num.to_bytes(byte_len, byteorder="big"))
+        ##########################
         
+        if res.startswith("SEED"):
+            split = res.split(" ")
+            pprint(split)
+            if split.__len__() >= 2:
+                if split[1].isnumeric() and split[2].isnumeric():
+                    cap = int(split[1])
+                    pcap = int(split[2])
+                    
+                    seed(cap, pcap)
+        
+        if res == ('TABLE'):
+            # Count only .bin files
+            bin_count = len(list(Path(TABLE_DIR).glob("*.bin")))
+            
+            print(f"Total .bin files: {bin_count}")
+            
+            for i in range(bin_count):
+                if i >= 2:
+                    e[i] = load_huge_ints_from_bin(TABLE_DIR + "/p_" + str(i) + ".bin")
+        ##################
+        
+        if res.startswith("LD"): #Take a peek in a .bin file
+            split = res.split(' ')
+            if split.__len__() > 1 and split[1].isnumeric():
+                ree = load_huge_ints_from_bin("tables/p_" + split[1] + ".bin")
+                pprint(ree)
         ##########################
         if res.startswith("LOOP"):
             split = res.split(' ')
