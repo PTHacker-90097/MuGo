@@ -11,6 +11,18 @@ from sympy import pprint, isprime
 import numpy as np
 import sys
 import time
+import resource
+
+class yes:
+    
+    base = 2
+    exponent = 1
+    
+    def __init__(self, b):
+        self.base = b
+    
+    def get(self, e):
+        return pow(self.base, e)
 
 
 
@@ -32,7 +44,7 @@ def mush(i, j):
         r = N
         res.append(r + j)
     
-    return np.array(res, np.int32)
+    return res
 
 
 
@@ -40,6 +52,12 @@ def mush(i, j):
 if __name__ == "__main__":
     sys.set_int_max_str_digits(0)
     
+    # Get current soft and hard limits for virtual memory
+    soft, hard = resource.getrlimit(resource.RLIMIT_AS)
+    
+    # Syscall to raise the soft limit to the system's hard ceiling
+    resource.setrlimit(resource.RLIMIT_AS, (hard, hard))
+        
     pprint("Bleatmind say hello!")
     
     
@@ -50,31 +68,43 @@ if __name__ == "__main__":
     inc = 2
     i = 2
     
-    cap = pow(10, 2) * 4
+    cap = (pow(10, 3) * 1) - 1
     
-    pcap = pow(10, 10) #Max value of Q for N^Q
+    pcap = pow(10, 2) #Max value of Q for N^Q
     
     rag = 3
     
+    cooldown = 10
+    restperiod = 5
     
-    blacklist = []
+    
+    #blacklist = []
+    
+    vee = []
+    
+    nummy = None
     
     while inc <= cap:
-        vee = []
-        r = inc
-        i = 2
+        vee.clear()
+        nummy = yes(inc)
+        h = 0
+        i = 3
+       # while inc in blacklist:
+         #   inc += 1
         
-        while r <= pcap:
-            if not r in blacklist:
-                vee.append(r)
-                blacklist.append(r)
-            r = inc**(i)
+        e[inc] = [pow(inc, 2)]
+        
+        while i < pcap:
+            h = nummy.get(i)
+            e[inc].append(h)
             i += 1
         
-        e[inc] = np.array([vee], np.uint64)
+        #e[inc] = vee
+        if inc % cooldown == 0:
+            #pprint(e[inc])
+            #time.sleep(restperiod)
+            print(f"Progress: {inc}/{cap}", end=" ", flush=True)
         inc += 1
-        print(f"Progress: {inc}/{cap}", end=" ", flush=True)
-        time.sleep(5 / pow(10, 5))
         
     
     pprint("[Seeding complete...]")
@@ -130,11 +160,10 @@ if __name__ == "__main__":
                                 pass
                                 #pprint("(No results! Is the number a power of another root number?")
                             else:
-                                for p in result:
-                                    for q in p:
-                                        if not primeonly or isprime(q):
-                                            if q not in compiled:
-                                                compiled.append(q)
+                                for q in result:
+                                    if not primeonly or isprime(q):
+                                        if q not in compiled:
+                                            compiled.append(q)
                             r += 1
                         ####
                         compiled.sort()
@@ -156,13 +185,13 @@ if __name__ == "__main__":
                     pprint("(No results! Is the number a power of another root number?")
                 else:
                     pprint("RESULTS FOUND")
-                    for p in result:
-                        for q in p:
-                            prt = str(q)
-                            if isprime(q):
-                                prt += '*'
-                            if not primeonly or isprime(q):
-                                pprint(prt)
-                            
+                    for q in result:
+                        prt = str(q)
+                        if isprime(q):
+                            prt += '*'
+                        prt += ','
+                        if not primeonly or isprime(q):
+                            pprint(prt)
+                                
         
         
