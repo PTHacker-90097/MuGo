@@ -6,8 +6,9 @@ Created on Tue Oct  6 18:01:28 2026
 @author: pam
 """
 
-from sympy import pprint, isprime
+from sympy import pprint, isprime, root
 from pathlib import Path
+from datetime import datetime
 
 import numpy as np
 import sys
@@ -37,8 +38,23 @@ RESET = "\033[0m"  # Resets formatting back to default
 
 TABLE_DIR = "tables/"
 
+DEV = {
+       "PRIME": True,
+       "OUT": False
+      }
+
 
 e = None
+
+def loadtable():
+    # Count only .bin files
+    bin_count = len(list(Path(TABLE_DIR).glob("*.bin")))
+    
+    print(f"Total .bin files: {bin_count}")
+    
+    for i in range(bin_count):
+        if i >= 2:
+            e[i] = load_huge_ints_from_bin(TABLE_DIR + "/p_" + str(i) + ".bin")
 
 def load_huge_ints_from_bin(filename: str) -> list[int]: #Method code by AI
     results = []
@@ -166,6 +182,59 @@ def bleatgeometry(size, sets, start, end):
     result.sort()
     return result
 
+def bleatfrag(ia, ib, mres, fine=True):
+    results = []
+    
+    aa = e[ia]
+    ab = e[ib]
+    
+    cres = 0
+    
+    for a in aa:
+        for b in ab:
+            c = a + b
+            if not c in results:
+                results.append(c)
+                c = pow(c, 2)
+                if not c in results:
+                    results.append(c)
+            if fine:
+                c = a // b
+                if not c in results:
+                    results.append(c)
+                    c = pow(c, 2)
+                    if not c in results:
+                        results.append(c)
+            cres += 1
+            if cres >= mres:
+                break
+        cres = 0
+    results.sort()
+    return results
+
+def printselect(ef, cmd):
+    
+    if DEV["OUT"]:#Print to console, not a file
+        for q in ef:
+            prt = str(q)
+            if isprime(q):
+                prt += '*'
+            prt += ','
+            if not DEV["PRIME"] or isprime(q):
+                pprint(prt)
+    else:
+        with open("output/printedcommand_" + str(datetime.now()) + ".txt", "w") as f:
+            for q in ef:
+                prt = str(q)
+                if isprime(q):
+                    prt += '*'
+                prt += ','
+                if not DEV["PRIME"] or isprime(q):
+                    print(prt, file=f)
+            print("###############", file=f)
+            print("Command Used:", file=f)
+            print(cmd, file=f)
+
 
 if __name__ == "__main__":
     sys.set_int_max_str_digits(0)
@@ -177,20 +246,25 @@ if __name__ == "__main__":
     resource.setrlimit(resource.RLIMIT_AS, (hard, hard))
         
     pprint("Bleatmind say hello!")
-    
-    
     e = {}
+    loadtable()
     
-    #We all know I was right to write the original pprint listed on this line, and also right to delete it from the internet.
     pprint("Now this is someone we can trust with humanity's future!\nAm I Right, Gamers?")
     
     res = ''
     stored = 0
-    out = True
-    primeonly = False
     
     while not res == "Q":
         res = input("->").upper()
+        
+        cmdstart = datetime.now()
+        
+        if res.startswith("FRAG"):
+            split = res.split(' ')
+            if split.__len__() > 3:
+                ree = bleatfrag(int(split[1]), int(split[2]), int(split[3]))
+                printselect(ree, res)
+                
         
         if res.startswith("GEOM"):
             split = res.split(' ')
@@ -206,37 +280,29 @@ if __name__ == "__main__":
                 ree = bleatgeometry(cands.__len__()-1, cands, rlow, rhigh)
                 
                 pprint("RESULTS FOUND")
-                for q in ree:
-                    prt = str(q)
-                    if isprime(q):
-                        prt += '*'
-                    prt += ','
-                    if not primeonly or isprime(q):
-                        pprint(prt)
+                printselect(ree, res)
+        ########
+        
         
         if res.startswith("FLAG"):
             split = res.split(' ')
             if split.__len__() == 2:
-                if "PRIME" in split[1]:
-                    primeonly = not primeonly
-                    
-                    pprint("Prime-Only Output set to: " + str(primeonly))
-                elif "OUT" in split[1]:
-                    out = not out
-                    
-                    pprint("Output set to " + str(out))
-        
+                    DEV[split[1]] = not DEV[split[1]]
+                    pprint("Prime-Only Output set to: " + str(DEV[split[1]]))
         ##########################
         if res.startswith('SET'):
             split = res.split(' ')
+        ####
             if split[1].isnumeric():
                 stored = int(split[1])
-                
-                if out:
+            ####
+                if DEV["OUT"]:
                     pprint(f"{BLUE}Set storage to " + str(stored) + f"{RESET}")
-        
+                ####
         if res == ('SAV'): #Saving code by AI
+        ####    
             for q in e.keys():
+            #### 
                 with open(TABLE_DIR + "/p_" + str(q) + ".bin", "wb") as f:
                         v = e[q]
                         for num in v:
@@ -247,7 +313,6 @@ if __name__ == "__main__":
                             f.write(byte_len.to_bytes(2, byteorder="big"))
                             f.write(num.to_bytes(byte_len, byteorder="big"))
         ##########################
-        
         if res.startswith("SEED"):
             split = res.split(" ")
             pprint(split)
@@ -257,18 +322,10 @@ if __name__ == "__main__":
                     pcap = int(split[2])
                     
                     seed(cap, pcap)
-        
+        ############
         if res == ('TABLE'): #Command created with AI assistance
-            # Count only .bin files
-            bin_count = len(list(Path(TABLE_DIR).glob("*.bin")))
-            
-            print(f"Total .bin files: {bin_count}")
-            
-            for i in range(bin_count):
-                if i >= 2:
-                    e[i] = load_huge_ints_from_bin(TABLE_DIR + "/p_" + str(i) + ".bin")
+            loadtable()
         ##################
-        
         if res.startswith("LD"): #Take a peek in a .bin file
             split = res.split(' ')
             if split.__len__() > 1 and split[1].isnumeric():
@@ -294,37 +351,30 @@ if __name__ == "__main__":
                                 #pprint("(No results! Is the number a power of another root number?")
                             else:
                                 for q in result:
-                                    if not primeonly or isprime(q):
+                                    if not DEV["PRIME"] or isprime(q):
                                         if q not in compiled:
                                             compiled.append(q)
                             r += 1
                         ####
                         compiled.sort()
-                        for t in compiled:
-                            prt = str(t)
-                            if isprime(t):
-                                prt += '*'
-                            if not primeonly or isprime(t):
-                                pprint(prt)
-        
-        
-        
+                        printselect(compiled, res)
         ########################
         if res.isnumeric():
-            result = mush(int(res), stored)
+            ree = mush(int(res), stored)
             
-            if out:
-                if result.__len__() == 0:
+            if DEV["OUT"]:
+                if result.__len__() == 1:
                     pprint("(No results! Is the number a power of another root number?")
                 else:
                     pprint("RESULTS FOUND")
-                    for q in result:
-                        prt = str(q)
-                        if isprime(q):
-                            prt += '*'
-                        prt += ','
-                        if not primeonly or isprime(q):
-                            pprint(prt)
+                    printselect(ree, res)
+        ###########################
+        ###########################
+        ###########################
+        ###########################
+        ###########################
+        pprint("Completed command in:")
+        pprint(datetime.now() - cmdstart)
                                 
         
         
