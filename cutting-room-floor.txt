@@ -1,0 +1,49 @@
+class no:
+    base = 2
+    val  = None
+    
+    def __init__(self, b, v):
+        self.base = b
+        
+        tmp = bitarray(int2ba(v))
+        
+        self.val = bitarray(64-tmp.to01().__len__())
+        
+        for c in tmp.to01():
+            self.val.append(int(c))
+    
+    def __str__(self):
+        return self.val.to01()
+    
+    def AND(a, b):
+        result = bitarray()
+        
+        v = 0
+        
+        for i in range(a.__str__().__len__()):
+            for j in range(b.__str__().__len__()):
+                if i == '0':
+                    if j == '1':
+                        v = 1
+                elif j == '1':
+                    v = 1
+                if v == 1:
+                    break
+            result.append(v)
+            v = 0
+        
+        return result
+        
+    ###STMP
+    
+    yes = no(2, 3)
+    oui = no(5, 127)
+    
+    print(str(yes))
+    print(str(oui))
+    
+    pprint("######################")
+    
+    pprint(yes.AND(oui).to01())
+    
+    ###ETMP

@@ -10,12 +10,22 @@ from sympy import pprint, isprime, root
 from pathlib import Path
 from datetime import datetime
 
+from bitarray import bitarray
+from bitarray.util import int2ba
+
+
 import numpy as np
 import sys
 import time
 import resource
 import array
 
+'''
+TODO:
+    Header for numerical metadata, apply to .bin file inputs/outputs
+    AKA a giant fucking nightmare which is actually not that big a deal to implement.
+    Just not as fun as other stuff you could be doing with code, in fantasy of the mind anyways,
+'''
 class yes:
     
     base = 2
@@ -37,7 +47,10 @@ class yes:
         self.queen = (e == 1)
     
     def get(self, e = 1):
-        return int(pow(self.base, e))
+        if e == 1:
+            return self.base
+        else:
+            return int(pow(self.base, e))
     
     def __str__(self):
         return str(self.get())
@@ -317,6 +330,8 @@ def printselect(ef, cmd):
             print(cmd, file=f)
 
 
+
+#######@HERE
 if __name__ == "__main__":
     sys.set_int_max_str_digits(0)
     
@@ -379,7 +394,7 @@ if __name__ == "__main__":
             split = res.split(' ')
         ####
             if split[1].isnumeric():
-                stored = int(split[1])
+                stored = e[int(split[1])]
             ####
                 if DEV["OUT"]:
                     pprint(f"{BLUE}Set storage to " + str(stored) + f"{RESET}")
@@ -449,6 +464,9 @@ if __name__ == "__main__":
                         b = e[int(split[2])]
                         
                         r = a
+                        
+                        print(type(a).__name__)
+                        print(type(r).__name__)
                         
                         itr = r[0].get()
                         
