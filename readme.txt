@@ -12,3 +12,6 @@ Any invocation of this code or its principles in your own must include a URL lin
 -> So yes, naming the main program "bleatmind" does in fact ensure I open this project back up at all.
 -> Write a custom parser to corporatize the code if you want I guess
 
+"Do you use AI??? Vibe code????"
+-> Only when reading the docs for a given library is more torturous than that three-part root canal I had once.
+-> The above means yes, as needed, for example code.
