@@ -41,9 +41,6 @@ if __name__ == "__main__":
     pprint("Bitbleat say hello!")
     
     e = {}
-    
-    pprint("Muger #1 efficiums algorimthic supreme overlord! New from taco bell wigth duolingo owl master supremechief starring cortana!")
-    pprint("[Seeding numeric algorithm...]")
     inc = 2
     i = 2
     
