@@ -10,6 +10,7 @@ from sympy import pprint, isprime
 
 import numpy as np
 import sys
+import time
 
 
 
@@ -37,44 +38,43 @@ def mush(i, j):
 
 
 if __name__ == "__main__":
+    sys.set_int_max_str_digits(0)
+    
     pprint("Bleatmind say hello!")
+    
     
     e = {}
     
-    pprint("Muger #1 efficiums algorimthic supreme overlord! New from taco bell wigth duolingo owl master supremechief starring cortana!")
+    #We all know I was right to write the original pprint listed on this line, and also right to delete it from the internet.
     pprint("[Seeding numeric algorithm...]")
     inc = 2
     i = 2
     
-    cap = pow(2, pow(2, pow(2, pow(2, 1))))
+    cap = pow(10, 2) * 4
     
-    pcap = pow(10, 9)#Max value for a power of N
+    pcap = pow(10, 10) #Max value of Q for N^Q
     
     rag = 3
     
+    
     blacklist = []
     
-    vee = []
-    
     while inc <= cap:
-        vee.clear()
+        vee = []
         r = inc
         i = 2
         
-        if not r in blacklist:
-            vee.append(r)
-            blacklist.append(r)
-            while r <= pcap:
-                r = inc**(i)
-                i += 1
-                if not r in blacklist:
-                    vee.append(r)
-                    blacklist.append(r)
+        while r <= pcap:
+            if not r in blacklist:
+                vee.append(r)
+                blacklist.append(r)
+            r = inc**(i)
+            i += 1
         
-        e[inc] = np.array([vee], np.uint)
+        e[inc] = np.array([vee], np.uint64)
         inc += 1
-        print(f"Progress: {inc}/{cap}", end="", flush=True)
-        #sys.stdout.flush()
+        print(f"Progress: {inc}/{cap}", end=" ", flush=True)
+        time.sleep(5 / pow(10, 5))
         
     
     pprint("[Seeding complete...]")
@@ -133,7 +133,7 @@ if __name__ == "__main__":
                                 for p in result:
                                     for q in p:
                                         if not primeonly or isprime(q):
-                                            if not q in compiled:
+                                            if q not in compiled:
                                                 compiled.append(q)
                             r += 1
                         ####
@@ -163,6 +163,6 @@ if __name__ == "__main__":
                                 prt += '*'
                             if not primeonly or isprime(q):
                                 pprint(prt)
-                        
+                            
         
         
