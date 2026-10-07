@@ -58,7 +58,7 @@ def load_huge_ints_from_bin(filename: str) -> list[int]: #Method code by AI
             
     return results
 
-def load_base_on_demand(base: int) -> list[int]:
+def load_base_on_demand(base: int) -> list[int]:#Method code by AI
     """
     Reads a single base binary file on demand.
     Returns a list of arbitrary-precision integers.
@@ -128,6 +128,44 @@ def seed(cap, pcap):
     
     pprint("[Seeding complete...]")
 
+def bleatgeometry(size, sets, start, end):
+    candidates = []
+    lq = []
+    
+    result = []
+    
+    counter = start
+    
+    while counter < end:
+        
+        lq.clear()
+        candidates.clear()
+        
+        for i in range(size):
+            candidates.append(0)
+        
+        for i in range(size):
+            lq.append(0)
+        
+        for i in range(candidates.__len__()):
+            candidates[i] = e[sets[i]]
+        #pprint(candidates)
+        
+        v = 0
+        
+        for q in candidates:
+            for p in lq:
+                for i in range(size):
+                    v = (q[i] + p)
+                    if not v in result:
+                        result.append(v)
+            lq = q
+        
+        counter += 1
+        
+    result.sort()
+    return result
+
 
 if __name__ == "__main__":
     sys.set_int_max_str_digits(0)
@@ -154,6 +192,27 @@ if __name__ == "__main__":
     while not res == "Q":
         res = input("->").upper()
         
+        if res.startswith("GEOM"):
+            split = res.split(' ')
+            if split.__len__() >= 2:
+                rlow = int(split[1])
+                rhigh = int(split[2])
+                
+                cands = []
+                
+                for i in range(split.__len__()-2):
+                    cands.append(int(split[i+2]))
+                
+                ree = bleatgeometry(cands.__len__()-1, cands, rlow, rhigh)
+                
+                pprint("RESULTS FOUND")
+                for q in ree:
+                    prt = str(q)
+                    if isprime(q):
+                        prt += '*'
+                    prt += ','
+                    if not primeonly or isprime(q):
+                        pprint(prt)
         
         if res.startswith("FLAG"):
             split = res.split(' ')
@@ -199,7 +258,7 @@ if __name__ == "__main__":
                     
                     seed(cap, pcap)
         
-        if res == ('TABLE'):
+        if res == ('TABLE'): #Command created with AI assistance
             # Count only .bin files
             bin_count = len(list(Path(TABLE_DIR).glob("*.bin")))
             
