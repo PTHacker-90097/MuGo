@@ -34,10 +34,13 @@ class yes:
         self.exponent = e
         self.primality = p
         self.lineage = l
-        self.queen = e.exponent == 1
+        self.queen = (e == 1)
     
-    def get(self, e):
-        return pow(self.base, e)
+    def get(self, e = 1):
+        return int(pow(self.base, e))
+    
+    def __str__(self):
+        return str(self.get())
 
 
 
@@ -115,15 +118,30 @@ def load_base_on_demand(base: int) -> list[int]:#Method code by AI
 def mush(i, j):
     res = []
     
+    fl1 = (j is list)
+    
+    
+    t = 0
+    
     for N in e[i]:
         r = N
-        res.append(r + j)
+        
+        if not fl1:
+            t = j[0].get()
+        else:
+            t = j.get()
+        
+        if t > 0:
+            res.append(r.get() + e[t][0].get())
+        else:
+            res.append(r)
     
     return res
 
 
 def seed(cap, pcap):
     e.clear()
+    e[1] = [yes(1, 1, False, 1)]
     pprint("[Seeding numeric algorithm...]")
     inc = 2
     i = 2
@@ -136,17 +154,17 @@ def seed(cap, pcap):
     #blacklist = []
     nummy = None
     
-    while inc <= cap:
-        pflag = primelitmus(inc)
+    while inc <= cap.get():
+        pflag = primelitmus(yes(inc, 1, False, inc))
         nummy = yes(inc, 1, pflag, inc)
         h = 0
-        i = 3
+        i = 2
         
         
-        e[inc] = [pow(inc, 2)]
+        e[inc] = [nummy]
         
-        while i < pcap:
-            h = nummy.get(i)
+        while i <= pcap.get():
+            h = yes(nummy.get(i), i, False, inc)
             e[inc].append(h)
             i += 1
         if inc % cooldown == 0:
@@ -234,12 +252,18 @@ ltms = []
 def primelitmus(cand) -> bool:
     flag = True
     
-    cap = 17 + (cand // 100)
+    g = cand
+    
+    cap = 17 + ( int(str(g)) // 100)
     
     for k in e:
-        if k[0].primality:
-            l = k[0]
-            if l % cand == 0:
+        f = True
+        v = k
+        if cand in e:
+            f = e[cand][0].primality
+        if f:
+            l = v
+            if l % k == 0:
                 flag = False
             if l > cap:
                 break
@@ -303,6 +327,8 @@ if __name__ == "__main__":
     resource.setrlimit(resource.RLIMIT_AS, (hard, hard))
     
     e = {}
+    e[0] = [yes(0, 0, False, 0)]
+    e[1] = [yes(1, 1, False, 1)]
     
     pprint("Bleatmind say hello!")
     
@@ -311,7 +337,7 @@ if __name__ == "__main__":
     pprint("Now this is someone we can trust with humanity's future!\nAm I Right, Gamers?")
     
     res = ''
-    stored = 0
+    stored = e[0]
     
     while not res == "Q":
         res = input("->").upper()
@@ -377,8 +403,8 @@ if __name__ == "__main__":
             pprint(split)
             if split.__len__() >= 2:
                 if split[1].isnumeric() and split[2].isnumeric():
-                    cap = int(split[1])
-                    pcap = int(split[2])
+                    cap = yes(int(split[1]), 1, False, 0)
+                    pcap = yes(int(split[2]), 1, False, 0)
                     
                     seed(cap, pcap)
         ############
@@ -419,15 +445,17 @@ if __name__ == "__main__":
             if split.__len__() >= 2:
                 if split[1].isnumeric():
                     if split[2].isnumeric():
-                        a = int(split[1])
-                        b = int(split[2])
+                        a = e[int(split[1])]
+                        b = e[int(split[2])]
                         
                         r = a
                         
+                        itr = r[0].get()
+                        
                         compiled = []
                         
-                        while r <= b:
-                            result = mush(a, r + stored)
+                        while itr <= a[0].get()+b[0].get():
+                            result = mush(a[0].get(), e[b[0].get() + stored[0].get()])
                             if result.__len__() == 0:
                                 pass
                                 #pprint("(No results! Is the number a power of another root number?")
@@ -439,7 +467,7 @@ if __name__ == "__main__":
                                     elif not DEV["PRIME"]:
                                         if q not in compiled:
                                             compiled.append(q)
-                            r += 1
+                            itr += 1
                         ####
                         compiled.sort()
                         printselect(compiled, res)
