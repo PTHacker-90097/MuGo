@@ -19,10 +19,22 @@ import array
 class yes:
     
     base = 2
-    exponent = 1
+    exponent = False
+    primality = False
+    queen = False
+    lineage = None
     
-    def __init__(self, b):
+    
+    def __init__(self, b, e, p, l):
         self.base = b
+        
+        if e:#Sanity check
+            p = False
+        
+        self.exponent = e
+        self.primality = p
+        self.lineage = l
+        self.queen = e.exponent == 1
     
     def get(self, e):
         return pow(self.base, e)
@@ -45,6 +57,7 @@ DEV = {
 
 
 e = None
+
 
 def loadtable():
     # Count only .bin files
@@ -124,7 +137,8 @@ def seed(cap, pcap):
     nummy = None
     
     while inc <= cap:
-        nummy = yes(inc)
+        pflag = primelitmus(inc)
+        nummy = yes(inc, 1, pflag, inc)
         h = 0
         i = 3
         
@@ -182,7 +196,7 @@ def bleatgeometry(size, sets, start, end):
     result.sort()
     return result
 
-def bleatfrag(ia, ib, mres, fine=True):
+def bleatfrag(ia, ib, mres, fine=False):
     results = []
     
     aa = e[ia]
@@ -195,7 +209,9 @@ def bleatfrag(ia, ib, mres, fine=True):
             c = a + b
             if not c in results:
                 results.append(c)
-                c = pow(c, 2)
+                c += a
+                c += b
+                c -= 1
                 if not c in results:
                     results.append(c)
             if fine:
@@ -212,25 +228,66 @@ def bleatfrag(ia, ib, mres, fine=True):
     results.sort()
     return results
 
+
+ltms = []
+
+def primelitmus(cand) -> bool:
+    flag = True
+    
+    cap = 17 + (cand // 100)
+    
+    for k in e:
+        if k[0].primality:
+            l = k[0]
+            if l % cand == 0:
+                flag = False
+            if l > cap:
+                break
+    
+    if flag:
+        flag = isprime(cand)
+    
+    return flag
+
+def countlineage(finality):
+    e["PRIME"] = []
+    e["COMPO"] = []
+    
+    counter = 2
+    
+    while counter <= finality:
+        while primelitmus(counter):
+            e["PRIME"].append(counter)
+            counter += 1
+        e["COMPO"].append(counter)
+        counter += 1
+    
+
 def printselect(ef, cmd):
+    
+    pprint(ef)
     
     if DEV["OUT"]:#Print to console, not a file
         for q in ef:
             prt = str(q)
-            if isprime(q):
+            if primelitmus(q):
                 prt += '*'
             prt += ','
-            if not DEV["PRIME"] or isprime(q):
+            if DEV["PRIME"] and primelitmus(q):
+                pprint(prt)
+            elif not DEV["PRIME"]:
                 pprint(prt)
     else:
         with open("output/printedcommand_" + str(datetime.now()) + ".txt", "w") as f:
             for q in ef:
                 prt = str(q)
-                if isprime(q):
+                if primelitmus(q):
                     prt += '*'
                 prt += ','
-                if not DEV["PRIME"] or isprime(q):
+                if DEV["PRIME"] and primelitmus(q):
                     print(prt, file=f)
+                elif not DEV["PRIME"]:
+                    pprint(prt, file=f)
             print("###############", file=f)
             print("Command Used:", file=f)
             print(cmd, file=f)
@@ -244,10 +301,12 @@ if __name__ == "__main__":
     
     # Syscall to raise the soft limit to the system's hard ceiling
     resource.setrlimit(resource.RLIMIT_AS, (hard, hard))
-        
-    pprint("Bleatmind say hello!")
+    
     e = {}
-    loadtable()
+    
+    pprint("Bleatmind say hello!")
+    
+    #loadtable()
     
     pprint("Now this is someone we can trust with humanity's future!\nAm I Right, Gamers?")
     
@@ -332,6 +391,29 @@ if __name__ == "__main__":
                 ree = load_huge_ints_from_bin("tables/p_" + split[1] + ".bin")
                 pprint(ree)
         ##########################
+        if res.startswith("LINEAGECALC"):
+            split = res.split(' ')
+            if split.__len__() >= 2:
+                pprint(split[1])
+                countlineage(int(split[1]))
+                with open(TABLE_DIR + "/LIN_PRIME.bin", "wb") as f:
+                        v = e["PRIME"]
+                        for nun in v:
+                            # Determine how many bytes are needed for this specific integer
+                            byte_len = (nun.bit_length() + 7) // 8
+                            
+                            # Write 2-byte header (length of integer) + raw integer bytes
+                            f.write(byte_len.to_bytes(2, byteorder="big"))
+                            f.write(nun.to_bytes(byte_len, byteorder="big"))
+                        w = e["COMPO"]
+                with open(TABLE_DIR + "/LIN_COMPO.bin", "wb") as g:
+                        for num in w:
+                            # Determine how many bytes are needed for this specific integer
+                            byte_len = (num.bit_length() + 7) // 8
+                            
+                            # Write 2-byte header (length of integer) + raw integer bytes
+                            g.write(byte_len.to_bytes(2, byteorder="big"))
+                            g.write(num.to_bytes(byte_len, byteorder="big"))
         if res.startswith("LOOP"):
             split = res.split(' ')
             if split.__len__() >= 2:
@@ -351,7 +433,10 @@ if __name__ == "__main__":
                                 #pprint("(No results! Is the number a power of another root number?")
                             else:
                                 for q in result:
-                                    if not DEV["PRIME"] or isprime(q):
+                                    if DEV["PRIME"] and primelitmus(q):
+                                        if q not in compiled:
+                                            compiled.append(q)
+                                    elif not DEV["PRIME"]:
                                         if q not in compiled:
                                             compiled.append(q)
                             r += 1
@@ -361,13 +446,8 @@ if __name__ == "__main__":
         ########################
         if res.isnumeric():
             ree = mush(int(res), stored)
-            
-            if DEV["OUT"]:
-                if result.__len__() == 1:
-                    pprint("(No results! Is the number a power of another root number?")
-                else:
-                    pprint("RESULTS FOUND")
-                    printselect(ree, res)
+            pprint("RESULTS FOUND")
+            printselect(ree, res)
         ###########################
         ###########################
         ###########################
