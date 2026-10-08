@@ -37,6 +37,11 @@ RESET = "\033[0m"  # Resets formatting back to default
 
 TABLE_DIR = "tables/"
 
+DEV = {
+        "PRIME" : True,
+        "OUT"   : True
+}
+
 
 e = None
 
@@ -128,6 +133,13 @@ def seed(cap, pcap):
     
     pprint("[Seeding complete...]")
 
+def setflag(key):
+    #print(f"DEBUG: key is {repr(key)}, type is {type(key)}")
+    DEV[key] = (not DEV[key])
+    
+    if key == "OUT":
+        if DEV[key]:
+            pass
 
 if __name__ == "__main__":
     sys.set_int_max_str_digits(0)
@@ -148,33 +160,24 @@ if __name__ == "__main__":
     
     res = ''
     stored = 0
-    out = True
-    primeonly = False
-    
+
     while not res == "Q":
         res = input("->").upper()
         
         
         if res.startswith("FLAG"):
             split = res.split(' ')
-            if split.__len__() == 2:
-                if "PRIME" in split[1]:
-                    primeonly = not primeonly
-                    
-                    pprint("Prime-Only Output set to: " + str(primeonly))
-                elif "OUT" in split[1]:
-                    out = not out
-                    
-                    pprint("Output set to " + str(out))
+            if split.__len__() >= 2:
+                setflag(split[1])
+                
+                pprint("Flag " + split[1] + " set to: " + str(DEV[split[1]]))
         
         ##########################
         if res.startswith('SET'):
             split = res.split(' ')
             if split[1].isnumeric():
                 stored = int(split[1])
-                
-                if out:
-                    pprint(f"{BLUE}Set storage to " + str(stored) + f"{RESET}")
+                pprint(f"{BLUE}Set storage to " + str(stored) + f"{RESET}")
         
         if res == ('SAV'): #Saving code by AI
             for q in e.keys():
@@ -235,7 +238,7 @@ if __name__ == "__main__":
                                 #pprint("(No results! Is the number a power of another root number?")
                             else:
                                 for q in result:
-                                    if not primeonly or isprime(q):
+                                    if not DEV["PRIME"] or isprime(q):
                                         if q not in compiled:
                                             compiled.append(q)
                             r += 1
@@ -245,7 +248,7 @@ if __name__ == "__main__":
                             prt = str(t)
                             if isprime(t):
                                 prt += '*'
-                            if not primeonly or isprime(t):
+                            if not DEV["PRIME"] or isprime(t):
                                 pprint(prt)
         
         
@@ -253,19 +256,17 @@ if __name__ == "__main__":
         ########################
         if res.isnumeric():
             result = mush(int(res), stored)
-            
-            if out:
-                if result.__len__() == 0:
-                    pprint("(No results! Is the number a power of another root number?")
-                else:
-                    pprint("RESULTS FOUND")
-                    for q in result:
-                        prt = str(q)
-                        if isprime(q):
-                            prt += '*'
-                        prt += ','
-                        if not primeonly or isprime(q):
-                            pprint(prt)
+            if result.__len__() == 0:
+                pprint("(No results! Is the number a power of another root number?")
+            else:
+                pprint("RESULTS FOUND")
+                for q in result:
+                    prt = str(q)
+                    if isprime(q):
+                        prt += '*'
+                    prt += ','
+                    if not DEV["PRIME"] or isprime(q):
+                        pprint(prt)
                                 
         
         
