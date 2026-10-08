@@ -9,7 +9,7 @@ Created on Tue Oct  6 18:01:28 2026
 
 from bleattodisc import TeeStdout
 
-from sympy import pprint, isprime
+from sympy import pprint, isprime, symbols, sympify, solve
 from pathlib import Path
 
 import numpy as np
@@ -111,6 +111,66 @@ def mush(i, j):
     
     return res
 
+'''
+This method brought to you by mathematical spite.
+Why does (2 ^ 2) == ( 2 * (2) ) == (4) ?
+This confuses even the very wise.
+
+To call forth an operation at all is to agree something is happening;
+
+(2 ^ 1) == (2 * 1) == (2) is pure lunacy.
+(2 ^ 0) == (2 / 2) == (1) ...
+
+?????????
+
+We've been had.
+
+kung(2, 1) == (2 * ('two, one time')) == (2 * 2) == (4)
+
+Now that's better!
+
+Mostly because we can just say, "Two to the first power is equal to two times itself"
+Then, kung(2, 2) == (8) == (2 * 2 * 2)
+
+In the last example, we call forth an operation twice upon the first subject, or 'argument'
+
+See Also:
+
+kung(7, 2) == (7) * ( (7) * (7) ) == (7 * 49) == (343)
+
+This is relevant for set theory as it pertains to symmetry within input & output, and interrelation of numbers across large scales.
+
+
+And yes, 'kung' as an alternative to 'pow' because it's one of my favorite dishes.
+'''
+def kung(v, e):
+    return v**(e+1)
+
+def lchaim(bound=2):
+    result = []
+    
+    a, b,r, s = symbols('a b r s')
+    
+    
+    ##"((2 ^ n) ^ p) + ((3 ^ m) & q)" & was a typo but at this point I trust my fingers more than my cognitive judgement
+    
+    defaulteq = sympify("((2 ^ a) ^ r) + ((3 ^ b) ^ s)")
+
+    defaultr = sympify("r").subs(r, kung(2, bound))
+    defaults = sympify("s").subs(s, kung(3, bound))
+    
+    eq = defaulteq.subs(r, defaultr).subs(s, defaults)
+    
+    for a_ in range(kung(2, bound)):
+        for b_ in range(kung(3, bound)):
+            #Focusing only on prime filtration and output in this one
+            if DEV["PRIME"]:
+                t = (eq.subs(a, a_).subs(b, b_))
+                if isprime(t):
+                    result.append(t)
+    result.sort()
+    return result
+    
 
 def seed(cap, pcap):
     e.clear()
@@ -154,8 +214,16 @@ def setflag(key):
     if key == "OUT":
         if DEV[key]:
             TOFILEOUT.toggle()
+            
+def printarraywithfiltration(arr):
+    for t in arr:
+        prt = str(t)
+        if isprime(t):
+            prt += '*'
+        if not DEV["PRIME"] or isprime(t):
+            pprint(prt)
 
-if __name__ == "__main__":
+if __name__ == "__main__":    
     sys.set_int_max_str_digits(0)
     
     # Get current soft and hard limits for virtual memory
@@ -240,6 +308,12 @@ if __name__ == "__main__":
                 ree = load_huge_ints_from_bin("tables/p_" + split[1] + ".bin")
                 pprint(ree)
         ##########################
+        if res.startswith("LCHAIM"):
+            split = res.split(' ')
+            if split.__len__() >= 1:
+                bnd = int(split[1])
+                printarraywithfiltration(lchaim(bnd))
+        
         if res.startswith("LOOP"):
             split = res.split(' ')
             if split.__len__() >= 2:
@@ -265,12 +339,7 @@ if __name__ == "__main__":
                             r += 1
                         ####
                         compiled.sort()
-                        for t in compiled:
-                            prt = str(t)
-                            if isprime(t):
-                                prt += '*'
-                            if not DEV["PRIME"] or isprime(t):
-                                pprint(prt)
+                        printarraywithfiltration(compiled)
         
         
         
@@ -281,13 +350,7 @@ if __name__ == "__main__":
                 pprint("(No results! Is the number a power of another root number?")
             else:
                 pprint("RESULTS FOUND")
-                for q in result:
-                    prt = str(q)
-                    if isprime(q):
-                        prt += '*'
-                    prt += ','
-                    if not DEV["PRIME"] or isprime(q):
-                        pprint(prt)
+                printarraywithfiltration(result)
                                 
         
         
