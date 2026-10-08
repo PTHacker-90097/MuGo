@@ -128,32 +128,25 @@ def load_base_on_demand(base: int) -> list[int]:#Method code by AI
     return integers
 
 
-def mush(i, j):
+def mush(i, j, offset = 0):
     res = []
     
-    fl1 = (j is list)
+    a = e[i]
+    c = e[j][0]
     
-    
-    t = 0
-    
-    for N in e[i]:
-        r = N
-        
-        if not fl1:
-            t = j[0].get()
-        else:
-            t = j.get()
-        
-        if t > 0:
-            res.append(r.get() + e[t][0].get())
-        else:
-            res.append(r)
+    for b in a:
+        d = b.get()
+        res.append(d + c.get())
+        res.append(d - c.get())
+        res.append(d + c.get() + offset)
+        res.append(d - c.get() + offset)
     
     return res
 
 
-def seed(cap, pcap):
+def seed(c1, c2):
     e.clear()
+    e[0] = [yes(0, 0, False, 0)]
     e[1] = [yes(1, 1, False, 1)]
     pprint("[Seeding numeric algorithm...]")
     inc = 2
@@ -164,10 +157,13 @@ def seed(cap, pcap):
     restperiod = 5
     
     
-    #blacklist = []
+    blacklist = []
     nummy = None
     
-    while inc <= cap.get():
+    cap = c1.get()
+    pcap = c2.get()
+    
+    while inc <= cap:
         pflag = primelitmus(yes(inc, 1, False, inc))
         nummy = yes(inc, 1, pflag, inc)
         h = 0
@@ -175,9 +171,14 @@ def seed(cap, pcap):
         
         
         e[inc] = [nummy]
+
         
-        while i <= pcap.get():
-            h = yes(nummy.get(i), i, False, inc)
+        while i <= pcap:
+            h = yes(pow(inc, i), i, False, inc)
+            
+            if not (type(h).__name__ == "yes"):
+                print(type(h).__name__ + "!@!#@")        
+            
             e[inc].append(h)
             i += 1
         if inc % cooldown == 0:
@@ -270,17 +271,18 @@ def primelitmus(cand) -> bool:
     cap = 17 + ( int(str(g)) // 100)
     
     for k in e:
-        f = True
-        v = k
-        if cand in e:
-            f = e[cand][0].primality
-        if f:
-            l = v
-            if l % k == 0:
-                flag = False
-            if l > cap:
-                break
-    
+        if k > 0:
+            f = True
+            v = k
+            if cand in e:
+                f = e[cand][0].primality
+            if f:
+                l = v
+                if l % k == 0:
+                    flag = False
+                if l > cap:
+                    break
+        
     if flag:
         flag = isprime(cand)
     
@@ -473,7 +475,7 @@ if __name__ == "__main__":
                         compiled = []
                         
                         while itr <= a[0].get()+b[0].get():
-                            result = mush(a[0].get(), e[b[0].get() + stored[0].get()])
+                            result = mush(a[0].get(), e[b[0].get()][0].get(), stored[0].get())
                             if result.__len__() == 0:
                                 pass
                                 #pprint("(No results! Is the number a power of another root number?")
@@ -491,7 +493,7 @@ if __name__ == "__main__":
                         printselect(compiled, res)
         ########################
         if res.isnumeric():
-            ree = mush(int(res), stored)
+            ree = mush(e[int(res)][0].get(), stored[0].get())
             pprint("RESULTS FOUND")
             printselect(ree, res)
         ###########################
