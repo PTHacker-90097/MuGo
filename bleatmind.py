@@ -4,7 +4,10 @@
 Created on Tue Oct  6 18:01:28 2026
 
 @author: pam
+
 """
+
+from bleattodisc import TeeStdout
 
 from sympy import pprint, isprime
 from pathlib import Path
@@ -19,13 +22,22 @@ class yes:
     
     base = 2
     exponent = 1
+    val = '00000000'
     
     def __init__(self, b):
         self.base = b
     
-    def get(self, e):
+    def exp(self, e):
         return pow(self.base, e)
-
+    
+    def get(self):
+        res = 0
+        ctr = 0
+        for c in self.val:
+            if c != '0':
+               res += pow(self.base, ctr)
+            ctr += 1
+        return res
 
 
 # ANSI escape codes for colors
@@ -41,6 +53,8 @@ DEV = {
         "PRIME" : True,
         "OUT"   : True
 }
+
+TOFILEOUT = None
 
 
 e = None
@@ -121,7 +135,7 @@ def seed(cap, pcap):
         e[inc] = [pow(inc, 2)]
         
         while i < pcap:
-            h = nummy.get(i)
+            h = nummy.exp(i)
             e[inc].append(h)
             i += 1
         if inc % cooldown == 0:
@@ -139,7 +153,7 @@ def setflag(key):
     
     if key == "OUT":
         if DEV[key]:
-            pass
+            TOFILEOUT.toggle()
 
 if __name__ == "__main__":
     sys.set_int_max_str_digits(0)
@@ -149,10 +163,17 @@ if __name__ == "__main__":
     
     # Syscall to raise the soft limit to the system's hard ceiling
     resource.setrlimit(resource.RLIMIT_AS, (hard, hard))
-        
+    
     pprint("Bleatmind say hello!")
     
+    '''
+    AUTHOR'S NOTE:
+        Any comment of form '#@' denotes AI-Generated Comments.
+    '''
     
+    #@ Instantiate globally or attach to your DEV/config dict
+    TOFILEOUT = TeeStdout("mugo_debug.log")
+    TOFILEOUT.toggle(enable=True)
     e = {}
     
     #We all know I was right to write the original pprint listed on this line, and also right to delete it from the internet.
@@ -163,7 +184,7 @@ if __name__ == "__main__":
 
     while not res == "Q":
         res = input("->").upper()
-        
+        pprint(res)
         
         if res.startswith("FLAG"):
             split = res.split(' ')
