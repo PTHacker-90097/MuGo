@@ -20,7 +20,10 @@ from pathlib import Path
 
 from datetime import datetime
 
+from concurrent.futures import ProcessPoolExecutor, as_completed
 import multiprocessing as mp
+
+
 import numpy as np
 import sys
 import time
@@ -87,6 +90,7 @@ STORAGE = {
         "LOOP"  : 0,
         "LCHAIM": 0,
         "BINAI" : 0,
+        "BLEAT" : 0,
     }
 
 TOFILEOUT = None
@@ -340,6 +344,60 @@ def loop(a, b):
     compiled.sort()
     
     return compiled
+
+
+'''
+ARGS:
+Power of ten to start at,
+Power of ten to end at,
+Power of ten to increment by
+
+NOTES:
+Kindof a "what if" that had been rattling around in my head.
+I hope anyone looking at this code gets irritated enough at what I write--
+-- to start fixing it up or starting from scratch, inspired by my inefficiencies.
+
+Cheers to you if you can!
+'''
+
+def bleat(workerid, args):
+    bass = pow(10, int(args[1]))+1
+    
+    inc = pow(10, int(args[3]))
+    
+    a = bass-((workerid+1)*inc)
+    
+    div = int(args[4])
+    
+    cap = pow(10, int(args[2]))-((workerid+1)*inc)
+    
+    a += STORAGE["BLEAT"]
+    cap += STORAGE["BLEAT"]
+    
+    cands = [
+            a,
+            a+2,
+            a+6,
+            a+8
+        ]
+    
+    result = []
+    
+    while a < cap:
+        
+        cands[0] += inc
+        cands[1] += inc
+        cands[2] += inc
+        cands[3] += inc
+        
+        for i in range(len(cands)):
+            if not cands[i] in result and isprime(cands[i]):
+                result.append(cands[i])
+            cands[i] += 10#or inc, or make it its own arg        
+        a += inc
+    
+    
+    return workerid, result
     
 
 def seed(cap, pcap):
@@ -385,7 +443,7 @@ def setflag(key):
         if DEV[key]:
             TOFILEOUT.toggle()
             
-def printarraywithfiltration(arr,prt=True):
+def printarraywithfiltration(arr,pr=True):
     
     print("@@@@@@@")
     print("Array Length: " + str(len(arr)))#@
@@ -400,7 +458,7 @@ def printarraywithfiltration(arr,prt=True):
                 if not t in FOUND_PRIMES:
                     FOUND_PRIMES.append(t)
             
-        if prt and (not DEV["PRIME"] or isprime(t)):
+        if pr and (not DEV["PRIME"] or isprime(t)):
             print(prt)
 
 if __name__ == "__main__":
@@ -415,9 +473,7 @@ if __name__ == "__main__":
     
     #We all know I was right to write the original pprint listed on this line, and also right to delete it from the internet.
     pprint("Now this is someone we can trust with humanity's future!\nAm I Right, Gamers?")
-    
-    #(The DEBRA stands for DEBUG)
-    
+
     #@ Instantiate globally or attach to your DEV/config dict
     TOFILEOUT = TeeStdout("mugo_debug.log")
     TOFILEOUT.toggle(enable=True)
@@ -506,7 +562,7 @@ if __name__ == "__main__":
                     pcap = int(split[2])
                     
                     seed(cap, pcap)
-        
+        ############
         if res == 'TABLE':#@
             table_path = Path(TABLE_DIR)
             
@@ -524,7 +580,6 @@ if __name__ == "__main__":
                 except (IndexError, ValueError):
                     continue
         #######################
-        
         if res.startswith("LD"): #Take a peek in a .bin file
             split = res.split(' ')
             if split.__len__() > 1 and split[1].isnumeric():
@@ -579,6 +634,40 @@ if __name__ == "__main__":
             if split.__len__() >= 2:
                 if split[1].isnumeric() and split[2].isnumeric():
                         printarraywithfiltration(loop(int(split[1]), int(split[2]))) 
+        ########################
+        if res.startswith("BLEAT"):
+            split = res.split(' ')
+            if len(split) >= 4:
+                result = []
+                if len(split) == 4:
+                    split.append('1')
+                    split.append('0')
+                
+                    result = bleat(split)
+                else:
+                    g = int(split[4])
+                    #@
+                    with ProcessPoolExecutor(max_workers=g) as executor:
+                        # Submit tasks across the worker pool
+                        futures = {
+                            executor.submit(bleat, i, split): i
+                            for i in range(g)
+                        }
+                    #\@
+                    print("Workers done!?")
+                    total_primes = 0
+                    for future in as_completed(futures):
+                        wid, result = future.result()
+                        total_primes += len(result)
+                        print(f"[+] Worker {wid} finished. Collected chunk results.")
+                        print("Found " + str(len(result)) + " primes in range!")
+                        uniq = 0
+                        for q in result:#Assumes primality check in bleat
+                            if not q in FOUND_PRIMES:
+                                FOUND_PRIMES.append(q)
+                                uniq += 1
+                        print("Added " + str(uniq) + " primes to memory!")
+                        print("Total primes in memory: " + str(len(FOUND_PRIMES)))
         ########################
         if res.isnumeric():
             result = mush(int(res), STORAGE["LOOP"])
