@@ -23,8 +23,7 @@ import array
 class yes:
     
     base = 2
-    exponent = 1
-    val = '00000000'
+    val = ''
     
     def __init__(self, b):
         self.base = b
@@ -40,6 +39,20 @@ class yes:
                res += kung(self.base, ctr)
             ctr -= 1
         return res
+    
+    def AND(self, otherself) -> int:
+        t = 0
+        
+        ctr = 0
+        for c in self.val:
+            if c == '1':
+                t += kung(self.base, ctr)
+        ctr = 0
+        for c in otherself.val:
+            if c == '1':
+                t += kung(otherself.base, ctr)
+        
+        return t
 
 
 # ANSI escape codes for colors
@@ -53,8 +66,22 @@ TABLE_DIR = "tables/"
 
 DEV = {
         "PRIME" : True,
-        "OUT"   : True
+        "OUT"   : True,
+        "VBINAI": True, #"Verbose" Binai flag
+        "OBINAI": True # "Output" Binai flag
 }
+
+BINAI_PRIMES = [
+        1 , 2 , 3 , 5 , 7 , 11, 13,
+        17, 19, 23, 29, 31, 37, 41,
+        43, 47, 53, 59, 61, 67, 71,
+        73, 79, 83, 89, 97
+    ]
+
+STORAGE = {
+        "LOOP"  : 0,
+        "BINAI" : 0,
+    }
 
 TOFILEOUT = None
 
@@ -155,36 +182,64 @@ def kung(v, e, pao=pow(10, 10)):
 
 
 
-def binai(args):
-    sz = int(args[1])
+def binai(args, verbose=True):
+    #Size (In bits) of values
+    sz = kung(2, int(args[1]))
     #inc = int(args[2])
     
     nums = []
     
-    y = 2
-    while y < args.__len__():
-        nums.append(yes(int(args[y])))
-        y += 1
+    fillprimes = BINAI_PRIMES.__len__()-1
     
-    bval = '00000000'
+    loopamt = 1
     
-    val = bval
+    if args.__len__() >= 3:
+        loopamt = int(args[2])
     
-    result = []
+    for a_ in range(loopamt):
+        y = 0
+        while y <= fillprimes:
+            nums.append(yes(BINAI_PRIMES[y]))
+            y += 1
+        
+        bval = '00000000'
+        
+        val = bval
+        
+        result = []
+        
+        lt = yes(2)
+        
+        for bit in range(sz):
+            r = ''
+            t = 1
+            for ye in nums:
+                for i in range(sz-bit):
+                    r += '1'
+                while r.__len__() < sz:
+                    r += '0'
+                ye.val = r
+                t = ye.get() + 1
+                t += STORAGE["BINAI"]
+                if verbose:
+                    if not t in result:
+                        result.append(t)
+                    g = yes(ye).AND(lt)
+                    if not g in result:
+                        result.append(g)
+                    h = t + lt.get()
+                    if not h in result:
+                        result.append(h)
+                        lt.val = r
+        time.sleep(0.01)
+        result.sort()
+        
+        if DEV["OBINAI"]:
+            for q in result:
+                if not q in BINAI_PRIMES and isprime(q):
+                    BINAI_PRIMES.append(q)
+            BINAI_PRIMES.sort()
     
-    for bit in range(sz):
-        r = ''
-        t = 1
-        for ye in nums:
-            for i in range(sz-bit):
-                r += '1'
-            while r.__len__() < sz:
-                r += '0'
-            ye.val = r
-            t += ye.get()
-            if not t in result:
-                result.append(t)
-    result.sort()
     return result
 
 '''
@@ -313,7 +368,6 @@ if __name__ == "__main__":
     TOFILEOUT.toggle(enable=True)
     e = {}
     res = ''
-    stored = 0
     cmdstart = datetime.now()
 
     while not res == "Q":
@@ -336,9 +390,11 @@ if __name__ == "__main__":
         ##########################
         if res.startswith('SET'):
             split = res.split(' ')
-            if split[1].isnumeric():
-                stored = int(split[1])
-                pprint(f"{BLUE}Set storage to " + str(stored) + f"{RESET}")
+            if split.__len__() >= 3:
+                spf = sympify(split[2])
+                rr = int(spf)
+                STORAGE[split[1]] = (rr)
+                pprint(f"{BLUE}Set " + split[1] + " storage to " + str(STORAGE[split[1]]) + f"{RESET}")
         
         if res == ('SAV'): #Saving code by AI
             for q in e.keys():
@@ -391,8 +447,9 @@ if __name__ == "__main__":
         ##########################
         if res.startswith("BINAI"):
             split = res.split(' ')
-            if split.__len__() >= 4:
-                printarraywithfiltration(binai(split))
+            if split.__len__() >= 2:
+                binai(split, DEV["VBINAI"])
+                printarraywithfiltration(BINAI_PRIMES)
         
         if res.startswith("LOOP"):
             split = res.split(' ')
@@ -407,7 +464,7 @@ if __name__ == "__main__":
                         compiled = []
                         
                         while r <= b:
-                            result = mush(a, r + stored)
+                            result = mush(a, r + STORAGE["LOOP"])
                             if result.__len__() == 0:
                                 pass
                                 #pprint("(No results! Is the number a power of another root number?")
@@ -425,7 +482,7 @@ if __name__ == "__main__":
         
         ########################
         if res.isnumeric():
-            result = mush(int(res), stored)
+            result = mush(int(res), STORAGE["LOOP"])
             if result.__len__() == 0:
                 pprint("(No results! Is the number a power of another root number?")
             else:
