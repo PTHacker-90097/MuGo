@@ -12,6 +12,8 @@ from bleattodisc import TeeStdout
 from sympy import pprint, isprime, symbols, sympify, solve
 from pathlib import Path
 
+from datetime import datetime
+
 import numpy as np
 import sys
 import time
@@ -146,10 +148,44 @@ And yes, 'kung' as an alternative to 'pow' because it's one of my favorite dishe
 def kung(v, e, pao=pow(10, 10)):
     v = int(v)
     e = int(e)
-    return pow(v, e+1, mod=pao)
+    try:
+        return pow(v, e+1, mod=pao)
+    except ValueError:
+        return -1
 
 
 
+def binai(args):
+    sz = int(args[1])
+    #inc = int(args[2])
+    
+    nums = []
+    
+    y = 2
+    while y < args.__len__():
+        nums.append(yes(int(args[y])))
+        y += 1
+    
+    bval = '00000000'
+    
+    val = bval
+    
+    result = []
+    
+    for bit in range(sz):
+        r = ''
+        t = 1
+        for ye in nums:
+            for i in range(sz-bit):
+                r += '1'
+            while r.__len__() < sz:
+                r += '0'
+            ye.val = r
+            t += ye.get()
+            if not t in result:
+                result.append(t)
+    result.sort()
+    return result
 
 '''
 Sort of a beautiful mixture of an equation;
@@ -255,13 +291,6 @@ def printarraywithfiltration(arr):
 
 if __name__ == "__main__":    
     sys.set_int_max_str_digits(0)
-    
-    a = yes(7)
-    a.val = '0000111'
-    
-    pprint(a.get())
-    
-    
     # Get current soft and hard limits for virtual memory
     soft, hard = resource.getrlimit(resource.RLIMIT_AS)
     
@@ -269,6 +298,10 @@ if __name__ == "__main__":
     resource.setrlimit(resource.RLIMIT_AS, (hard, hard))
     
     pprint("Bleatmind say hello!")
+    
+    #We all know I was right to write the original pprint listed on this line, and also right to delete it from the internet.
+    pprint("Now this is someone we can trust with humanity's future!\nAm I Right, Gamers?")
+    
     
     '''
     AUTHOR'S NOTE:
@@ -279,15 +312,18 @@ if __name__ == "__main__":
     TOFILEOUT = TeeStdout("mugo_debug.log")
     TOFILEOUT.toggle(enable=True)
     e = {}
-    
-    #We all know I was right to write the original pprint listed on this line, and also right to delete it from the internet.
-    pprint("Now this is someone we can trust with humanity's future!\nAm I Right, Gamers?")
-    
     res = ''
     stored = 0
+    cmdstart = datetime.now()
 
     while not res == "Q":
+        if not res == '':
+            pprint("Completed last command in " + str(datetime.now() - cmdstart))
+        
         res = input("->").upper()
+        
+        cmdstart = datetime.now()
+        
         pprint(res)
         
         if res.startswith("FLAG"):
@@ -353,6 +389,11 @@ if __name__ == "__main__":
                 
                 printarraywithfiltration(lchaim(bnd))
         ##########################
+        if res.startswith("BINAI"):
+            split = res.split(' ')
+            if split.__len__() >= 4:
+                printarraywithfiltration(binai(split))
+        
         if res.startswith("LOOP"):
             split = res.split(' ')
             if split.__len__() >= 2:
