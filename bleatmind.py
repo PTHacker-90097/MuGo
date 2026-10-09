@@ -456,7 +456,7 @@ if __name__ == "__main__":
             
             split = res.split(' ')
             
-            if split[1] == "TABLE":
+            if split[1] == "TABLE":#NOTE: Presently, this doesn't save multiples of ten. It's funnier to leave it like this, as the program is still deeply performant. What has One Zero ever done for me, anyways?
                 for q in e.keys():
                     curfolder = "" + str(ctr // 100)
                     
@@ -528,7 +528,7 @@ if __name__ == "__main__":
         if res.startswith("LD"): #Take a peek in a .bin file
             split = res.split(' ')
             if split.__len__() > 1 and split[1].isnumeric():
-                ree = load_huge_ints_from_bin("tables/" + str(int(split[1]) // 10) + "/p_" + split[1] + ".bin")
+                ree = load_huge_ints_from_bin("tables/" + str(int(split[1]) // 100) + "/p_" + split[1] + ".bin")
                 pprint(ree)
             elif split[1] == "PRIMES":
                 ree = load_huge_ints_from_bin("output/found_primes.bin")
