@@ -7,7 +7,13 @@ Created on Tue Oct  6 18:01:28 2026
 
 """
 
+'''
+AUTHOR'S NOTE:
+    Any comment of form '#@' denotes AI-Generated Comments / code snippets
+'''
+
 from bleattodisc import TeeStdout
+from ReBleat.BitBleater import BINGen
 
 from sympy import pprint, isprime, symbols, sympify, solve
 from pathlib import Path
@@ -382,8 +388,8 @@ def setflag(key):
 def printarraywithfiltration(arr,prt=True):
     
     print("@@@@@@@")
-    print(len(arr))
-    print(len(FOUND_PRIMES))
+    print("Array Length: " + str(len(arr)))#@
+    print("Total Primes In Memory: " + str(len(FOUND_PRIMES)))#@
     print("@@@@@@@")
     
     for t in arr:
@@ -397,7 +403,7 @@ def printarraywithfiltration(arr,prt=True):
         if prt and (not DEV["PRIME"] or isprime(t)):
             print(prt)
 
-if __name__ == "__main__":    
+if __name__ == "__main__":
     sys.set_int_max_str_digits(0)
     # Get current soft and hard limits for virtual memory
     soft, hard = resource.getrlimit(resource.RLIMIT_AS)
@@ -410,11 +416,7 @@ if __name__ == "__main__":
     #We all know I was right to write the original pprint listed on this line, and also right to delete it from the internet.
     pprint("Now this is someone we can trust with humanity's future!\nAm I Right, Gamers?")
     
-    
-    '''
-    AUTHOR'S NOTE:
-        Any comment of form '#@' denotes AI-Generated Comments.
-    '''
+    #(The DEBRA stands for DEBUG)
     
     #@ Instantiate globally or attach to your DEV/config dict
     TOFILEOUT = TeeStdout("mugo_debug.log")
