@@ -68,18 +68,16 @@ DEV = {
         "PRIME" : True,
         "OUT"   : True,
         "VBINAI": True, #"Verbose" Binai flag
-        "OBINAI": True # "Output" Binai flag
+        "OPRIME": True # "Output" Primes flag
 }
 
-BINAI_PRIMES = [
-        1 , 2 , 3 , 5 , 7 , 11, 13,
-        17, 19, 23, 29, 31, 37, 41,
-        43, 47, 53, 59, 61, 67, 71,
-        73, 79, 83, 89, 97
+FOUND_PRIMES = [
+        1 , 2 , 3 , 5 , 7
     ]
 
 STORAGE = {
         "LOOP"  : 0,
+        "LCHAIM": 0,
         "BINAI" : 0,
     }
 
@@ -189,7 +187,7 @@ def binai(args, verbose=True):
     
     nums = []
     
-    fillprimes = BINAI_PRIMES.__len__()-1
+    fillprimes = FOUND_PRIMES.__len__()-1
     
     loopamt = 1
     
@@ -199,7 +197,7 @@ def binai(args, verbose=True):
     for a_ in range(loopamt):
         y = 0
         while y <= fillprimes:
-            nums.append(yes(BINAI_PRIMES[y]))
+            nums.append(yes(FOUND_PRIMES[y]))
             y += 1
         
         bval = '00000000'
@@ -210,14 +208,22 @@ def binai(args, verbose=True):
         
         lt = yes(2)
         
-        for bit in range(sz):
+        c_sz = 0
+        
+        
+        while c_sz <= sz:
             r = ''
             t = 1
             for ye in nums:
-                for i in range(sz-bit):
+                
+                c_r = 0
+                
+                while c_r < sz-c_sz:
                     r += '1'
+                    c_r += 1
                 while r.__len__() < sz:
                     r += '0'
+                    c_r += 1
                 ye.val = r
                 t = ye.get() + 1
                 t += STORAGE["BINAI"]
@@ -231,14 +237,10 @@ def binai(args, verbose=True):
                     if not h in result:
                         result.append(h)
                         lt.val = r
-        time.sleep(0.01)
-        result.sort()
-        
-        if DEV["OBINAI"]:
-            for q in result:
-                if not q in BINAI_PRIMES and isprime(q):
-                    BINAI_PRIMES.append(q)
-            BINAI_PRIMES.sort()
+            c_sz += 1
+            time.sleep(0.01)
+    
+    FOUND_PRIMES.sort()
     
     return result
 
@@ -277,15 +279,25 @@ def lchaim(bound):
         t1 = round(kung(t1, 2, bound))
         t2 = round(kung(t2, 3, bound))
         
+        t3 = t1+t2
+        
+        t1 += STORAGE["LCHAIM"]
+        t2 += STORAGE["LCHAIM"]
+        t3 += STORAGE["LCHAIM"]
+        
         while t1 % 2 == 0 or t1 % 3 == 0 or t1 % 5 == 0 or t1 % 7 == 0:
             t1 += 1
         while t2 % 2 == 0 or t2 % 3 == 0 or t2 % 5 == 0 or t2 % 7 == 0:
             t2 += 1
+        while t3 % 2 == 0 or t3 % 3 == 0 or t3 % 5 == 0 or t3 % 7 == 0:
+            t3 += 1
         
         if not t1 in result:
             result.append(t1)
         if not t2 in result:
             result.append(t2)
+        if not t3 in result:
+            result.append(t3)
         
         ctr += 1
     
@@ -336,13 +348,23 @@ def setflag(key):
         if DEV[key]:
             TOFILEOUT.toggle()
             
-def printarraywithfiltration(arr):
+def printarraywithfiltration(arr,prt=True):
+    
+    print("@@@@@@@")
+    print(len(arr))
+    print(len(FOUND_PRIMES))
+    print("@@@@@@@")
+    
     for t in arr:
         prt = str(t)
         if isprime(t):
             prt += '*'
-        if not DEV["PRIME"] or isprime(t):
-            pprint(prt)
+            if DEV["OPRIME"]:
+                if not t in FOUND_PRIMES:
+                    FOUND_PRIMES.append(t)
+            
+        if prt and (not DEV["PRIME"] or isprime(t)):
+            print(prt)
 
 if __name__ == "__main__":    
     sys.set_int_max_str_digits(0)
@@ -396,17 +418,50 @@ if __name__ == "__main__":
                 STORAGE[split[1]] = (rr)
                 pprint(f"{BLUE}Set " + split[1] + " storage to " + str(STORAGE[split[1]]) + f"{RESET}")
         
-        if res == ('SAV'): #Saving code by AI
-            for q in e.keys():
-                with open(TABLE_DIR + "/p_" + str(q) + ".bin", "wb") as f:
-                        v = e[q]
-                        for num in v:
+        if res.startswith("SAV "): #Saving code by AI
+            ctr = 0
+            
+            split = res.split(' ')
+            
+            if split[1] == "TABLE":
+                for q in e.keys():
+                    curfolder = "" + str(ctr // 100)
+                    
+                    filepath = Path(TABLE_DIR + curfolder + "/p_" + str(q) + ".bin")
+                    
+                    #@ Create parent directories if they don't exist
+                    filepath.parent.mkdir(parents=True, exist_ok=True)#@
+                    
+                    with open(filepath, "wb") as f:
+                            v = e[q]
+                            for num in v:
+                                # Determine how many bytes are needed for this specific integer
+                                byte_len = (num.bit_length() + 7) // 8
+                                
+                                # Write 2-byte header (length of integer) + raw integer bytes
+                                f.write(byte_len.to_bytes(2, byteorder="big"))
+                                f.write(num.to_bytes(byte_len, byteorder="big"))
+                    ctr += 1
+            elif split[1] == "PRIMES":
+                curfolder = "output"
+                
+                filepath = Path(curfolder + "/found_primes" + ".bin")
+                
+                #@ Create parent directories if they don't exist
+                filepath.parent.mkdir(parents=True, exist_ok=True)#@
+                
+                FOUND_PRIMES.sort()
+                
+                with open(filepath, "wb") as f:
+                        for num in FOUND_PRIMES:
                             # Determine how many bytes are needed for this specific integer
                             byte_len = (num.bit_length() + 7) // 8
                             
                             # Write 2-byte header (length of integer) + raw integer bytes
                             f.write(byte_len.to_bytes(2, byteorder="big"))
                             f.write(num.to_bytes(byte_len, byteorder="big"))
+                ctr += 1
+                
         ##########################
         
         if res.startswith("SEED"):
@@ -419,22 +474,32 @@ if __name__ == "__main__":
                     
                     seed(cap, pcap)
         
-        if res == ('TABLE'):
-            # Count only .bin files
-            bin_count = len(list(Path(TABLE_DIR).glob("*.bin")))
+        if res == 'TABLE':#@
+            table_path = Path(TABLE_DIR)
             
-            print(f"Total .bin files: {bin_count}")
+            # Recursively find all .bin files across all subdirectories
+            bin_files = sorted(table_path.rglob("*.bin"))
+            print(f"Total .bin files: {len(bin_files)}")
             
-            for i in range(bin_count):
-                if i >= 2:
-                    e[i] = load_huge_ints_from_bin(TABLE_DIR + "/p_" + str(i) + ".bin")
-        ##################
+            for file_path in bin_files:
+                # Extract the integer index from the filename (e.g., 'p_5.bin' -> 5)
+                # Assumes filenames follow 'p_<index>.bin'
+                try:
+                    i = int(file_path.stem.split('_')[1])
+                    if i >= 2:
+                        e[i] = load_huge_ints_from_bin(str(file_path))
+                except (IndexError, ValueError):
+                    continue
+        #######################
         
         if res.startswith("LD"): #Take a peek in a .bin file
             split = res.split(' ')
             if split.__len__() > 1 and split[1].isnumeric():
-                ree = load_huge_ints_from_bin("tables/p_" + split[1] + ".bin")
+                ree = load_huge_ints_from_bin("tables/" + str(int(split[1]) // 10) + "/p_" + split[1] + ".bin")
                 pprint(ree)
+            elif split[1] == "PRIMES":
+                ree = load_huge_ints_from_bin("output/found_primes.bin")
+                printarraywithfiltration(ree)
         ##########################
         if res.startswith("LCHAIM"):
             split = res.split(' ')
@@ -448,8 +513,7 @@ if __name__ == "__main__":
         if res.startswith("BINAI"):
             split = res.split(' ')
             if split.__len__() >= 2:
-                binai(split, DEV["VBINAI"])
-                printarraywithfiltration(BINAI_PRIMES)
+                printarraywithfiltration(binai(split, DEV["VBINAI"]))
         
         if res.startswith("LOOP"):
             split = res.split(' ')
