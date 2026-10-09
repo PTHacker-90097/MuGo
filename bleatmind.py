@@ -28,15 +28,15 @@ class yes:
         self.base = b
     
     def exp(self, e):
-        return pow(self.base, e)
+        return kung(self.base, e)
     
     def get(self):
         res = 0
-        ctr = 0
+        ctr = 8
         for c in self.val:
             if c != '0':
-               res += pow(self.base, ctr)
-            ctr += 1
+               res += kung(self.base, ctr)
+            ctr -= 1
         return res
 
 
@@ -143,34 +143,64 @@ This is relevant for set theory as it pertains to symmetry within input & output
 
 And yes, 'kung' as an alternative to 'pow' because it's one of my favorite dishes.
 '''
-def kung(v, e):
-    return v**(e+1)
+def kung(v, e, pao=pow(10, 10)):
+    v = int(v)
+    e = int(e)
+    return pow(v, e+1, mod=pao)
 
-def lchaim(bound=2):
+
+
+
+'''
+Sort of a beautiful mixture of an equation;
+On the one hand, it's like a fine-toothed comb going over the sandy deserts of the number line
+and picking up primes in clusters/clumps.
+
+On the other hand, it's kind of inelegant and basically a buckshot fired into regions of the number line
+hoping it'll catch more fish than it obliterates.
+
+It's a very 'me' kinda algorithm, honestly.
+'''
+def lchaim(bound):
+    #"((2 ^ a) ^ r) + ((3 ^ b) ^ s)"
+    
     result = []
     
-    a, b,r, s = symbols('a b r s')
+    ctr = 0
     
+    cap = bound / pow(10, 9)
     
-    ##"((2 ^ n) ^ p) + ((3 ^ m) & q)" & was a typo but at this point I trust my fingers more than my cognitive judgement
+    while ctr <= cap:
+        
+        a = (kung(2, ctr+1, bound))
+        b = (kung(3, ctr+1, bound))
+        
+        p = (3 / a)
+        q = (2 / b)
+        
+        t = a + b
+        
+        t1 = kung(t, p)
+        t2 = kung(t, q)
+        
+        t1 = round(kung(t1, 2, bound))
+        t2 = round(kung(t2, 3, bound))
+        
+        while t1 % 2 == 0 or t1 % 3 == 0 or t1 % 5 == 0 or t1 % 7 == 0:
+            t1 += 1
+        while t2 % 2 == 0 or t2 % 3 == 0 or t2 % 5 == 0 or t2 % 7 == 0:
+            t2 += 1
+        
+        if not t1 in result:
+            result.append(t1)
+        if not t2 in result:
+            result.append(t2)
+        
+        ctr += 1
     
-    defaulteq = sympify("((2 ^ a) ^ r) + ((3 ^ b) ^ s)")
-
-    defaultr = sympify("r").subs(r, kung(2, bound))
-    defaults = sympify("s").subs(s, kung(3, bound))
-    
-    eq = defaulteq.subs(r, defaultr).subs(s, defaults)
-    
-    for a_ in range(kung(2, bound)):
-        for b_ in range(kung(3, bound)):
-            #Focusing only on prime filtration and output in this one
-            if DEV["PRIME"]:
-                t = (eq.subs(a, a_).subs(b, b_))
-                if isprime(t):
-                    result.append(t)
     result.sort()
-    return result
     
+    return result
 
 def seed(cap, pcap):
     e.clear()
@@ -189,10 +219,10 @@ def seed(cap, pcap):
     while inc <= cap:
         nummy = yes(inc)
         h = 0
-        i = 3
+        i = 2
         
         
-        e[inc] = [pow(inc, 2)]
+        e[inc] = [kung(inc, 1)]
         
         while i < pcap:
             h = nummy.exp(i)
@@ -225,6 +255,12 @@ def printarraywithfiltration(arr):
 
 if __name__ == "__main__":    
     sys.set_int_max_str_digits(0)
+    
+    a = yes(7)
+    a.val = '0000111'
+    
+    pprint(a.get())
+    
     
     # Get current soft and hard limits for virtual memory
     soft, hard = resource.getrlimit(resource.RLIMIT_AS)
@@ -310,10 +346,13 @@ if __name__ == "__main__":
         ##########################
         if res.startswith("LCHAIM"):
             split = res.split(' ')
-            if split.__len__() >= 1:
+            if split.__len__() >= 3:
                 bnd = int(split[1])
+                bnd *= int(split[2])
+                bnd *= pow(10, 10)
+                
                 printarraywithfiltration(lchaim(bnd))
-        
+        ##########################
         if res.startswith("LOOP"):
             split = res.split(' ')
             if split.__len__() >= 2:
