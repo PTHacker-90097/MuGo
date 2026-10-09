@@ -545,7 +545,7 @@ if __name__ == "__main__":
                 with mp.Pool(processes=loopies) as pool:
                     for y in range(1, loopies):
                         #@ pool.map runs count_to_ten for each core ID and collects return values
-                        rezzy.append(pool.map(lchaim, [(bnd*y), (bnd * y * 2)]))
+                        rezzy.append(pool.map(lchaim, [(bnd*y), (bnd * y * 2), (bnd * y * 3)]))
                     
                     #@ 2. Wait for all processes to complete before continuing
                     for p in PROCESSES:
