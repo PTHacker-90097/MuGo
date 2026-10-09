@@ -66,10 +66,11 @@ RESET = "\033[0m"  # Resets formatting back to default
 TABLE_DIR = "tables/"
 
 DEV = {
-        "PRIME" : True,
-        "OUT"   : True,
-        "VBINAI": True, #"Verbose" Binai flag
-        "OPRIME": True # "Output" Primes flag
+        "PRIME"     : True,
+        "OUT"       : True,
+        "VBINAI"    : True, # "Verbose" Binai flag
+        "OPRIME"    : True,  # "Output" Primes flag
+        "SPICYCPU"  : True  # Leave as 'True' if you're OK with CPU temp spikes, otherwise set to "False" for slower runtime results but better CPU temp management
 }
 
 FOUND_PRIMES = [
@@ -87,6 +88,8 @@ TOFILEOUT = None
 NUM_CORES = mp.cpu_count()#@
 PROCESSES = []#@
 
+sleepgen = 5000
+sleepamt = 0.1
 
 e = None
 
@@ -214,7 +217,6 @@ def binai(args, verbose=True):
         
         c_sz = 0
         
-        
         while c_sz <= sz:
             r = ''
             t = 1
@@ -241,8 +243,9 @@ def binai(args, verbose=True):
                     if not h in result:
                         result.append(h)
                         lt.val = r
+                if not DEV["SPICYCPU"] and c_sz % sleepgen == 0:
+                    time.sleep(sleepamt)
             c_sz += 1
-            time.sleep(0.01)
     
     FOUND_PRIMES.sort()
     
@@ -301,6 +304,9 @@ def lchaim(bound) -> list[int]:
             result.append(t2)
         if not t3 in result:
             result.append(t3)
+            
+        if not DEV["SPICYCPU"] and ctr % sleepgen == 0:
+            time.sleep(sleepamt)
         
         ctr += 1
     
