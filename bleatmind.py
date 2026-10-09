@@ -14,6 +14,7 @@ from pathlib import Path
 
 from datetime import datetime
 
+import multiprocessing as mp
 import numpy as np
 import sys
 import time
@@ -82,6 +83,9 @@ STORAGE = {
     }
 
 TOFILEOUT = None
+
+NUM_CORES = mp.cpu_count()#@
+PROCESSES = []#@
 
 
 e = None
@@ -254,14 +258,13 @@ hoping it'll catch more fish than it obliterates.
 
 It's a very 'me' kinda algorithm, honestly.
 '''
-def lchaim(bound):
+def lchaim(bound) -> list[int]:
     #"((2 ^ a) ^ r) + ((3 ^ b) ^ s)"
-    
     result = []
     
     ctr = 0
     
-    cap = bound / pow(10, 9)
+    cap = bound // pow(10, 9)
     
     while ctr <= cap:
         
@@ -304,6 +307,28 @@ def lchaim(bound):
     result.sort()
     
     return result
+
+def loop(a, b):
+    r = a
+    
+    compiled = []
+    
+    while r <= b:
+        result = mush(a, r + STORAGE["LOOP"])
+        if result.__len__() == 0:
+            pass
+            #pprint("(No results! Is the number a power of another root number?")
+        else:
+            for q in result:
+                if not DEV["PRIME"] or isprime(q):
+                    if q not in compiled:
+                        compiled.append(q)
+        r += 1
+    ####
+    compiled.sort()
+    
+    return compiled
+    
 
 def seed(cap, pcap):
     e.clear()
@@ -503,47 +528,49 @@ if __name__ == "__main__":
         ##########################
         if res.startswith("LCHAIM"):
             split = res.split(' ')
-            if split.__len__() >= 3:
+            if split.__len__() >= 4:
                 bnd = int(split[1])
                 bnd *= int(split[2])
                 bnd *= pow(10, 10)
                 
-                printarraywithfiltration(lchaim(bnd))
+                loopies = int(split[3])
+                
+                rezzy = []
+                
+                
+                #@@@
+                
+                #@ Create a pool of worker processes
+                ctr_ = 1
+                with mp.Pool(processes=loopies) as pool:
+                    for y in range(1, loopies):
+                        #@ pool.map runs count_to_ten for each core ID and collects return values
+                        rezzy.append(pool.map(lchaim, [(bnd*y), (bnd * y * 2)]))
+                    
+                    #@ 2. Wait for all processes to complete before continuing
+                    for p in PROCESSES:
+                        p.join()
+                        
+                    #@@@
+                    
+                    for idx, rex in enumerate(rezzy):
+                        '''
+                        pprint(str(idx))
+                        pprint(str(rex))
+                        '''
+                        printarraywithfiltration(rex[0])
+                    PROCESSES.clear()
         ##########################
         if res.startswith("BINAI"):
             split = res.split(' ')
             if split.__len__() >= 2:
                 printarraywithfiltration(binai(split, DEV["VBINAI"]))
-        
+        ##########################
         if res.startswith("LOOP"):
             split = res.split(' ')
             if split.__len__() >= 2:
-                if split[1].isnumeric():
-                    if split[2].isnumeric():
-                        a = int(split[1])
-                        b = int(split[2])
-                        
-                        r = a
-                        
-                        compiled = []
-                        
-                        while r <= b:
-                            result = mush(a, r + STORAGE["LOOP"])
-                            if result.__len__() == 0:
-                                pass
-                                #pprint("(No results! Is the number a power of another root number?")
-                            else:
-                                for q in result:
-                                    if not DEV["PRIME"] or isprime(q):
-                                        if q not in compiled:
-                                            compiled.append(q)
-                            r += 1
-                        ####
-                        compiled.sort()
-                        printarraywithfiltration(compiled)
-        
-        
-        
+                if split[1].isnumeric() and split[2].isnumeric():
+                        printarraywithfiltration(loop(int(split[1]), int(split[2]))) 
         ########################
         if res.isnumeric():
             result = mush(int(res), STORAGE["LOOP"])

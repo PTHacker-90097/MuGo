@@ -3,3 +3,5 @@ tables/
 mugo_debug.log
 /output
 /tables
+mugo_debug.log
+/__pycache__
