@@ -192,13 +192,13 @@ class BleatMind:
                     t = ye.get() + 1
                     t += self.STORAGE["BINAI"]
                     if verbose:
-                        if not t in result:
+                        if not t in result and isprime(t):
                             result.append(t)
                         g = yes(ye).AND(lt)
-                        if not g in result:
+                        if not g in result and isprime(g):
                             result.append(g)
                         h = t + lt.get()
-                        if not h in result:
+                        if not h in result and isprime(h):
                             result.append(h)
                             lt.val = r
                     self.sleepcheck(c_sz)
