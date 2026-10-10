@@ -9,8 +9,13 @@ Created on Tue Oct  6 18:01:28 2026
 
 '''
 AUTHOR'S NOTE:
+    
     Any comment of form '#@' denotes AI-Generated Comments / code snippets
+    Any block comment of form '@@@' denotes use of AI-Generated code blocks left as-is or edited to a small amount for adaptation to human-written code.
+    Any block comment of form '@#@' denotes use of AI-Generated code which has changed, Ship of Theseus-style, into human-written code via the passage of time.
+    
 '''
+
 
 from bleattodisc import TeeStdout
 from ReBleat.BitBleater import BINGen
@@ -82,10 +87,6 @@ DEV = {
         "SPICYCPU"  : True  # Leave as 'True' if you're OK with CPU temp spikes, otherwise set to "False" for slower runtime results but better CPU temp management
 }
 
-FOUND_PRIMES = [
-        1 , 2 , 3 , 5 , 7
-    ]
-
 STORAGE = {
         "LOOP"  : 0,
         "LCHAIM": 0,
@@ -101,7 +102,8 @@ PROCESSES = []#@
 sleepgen = 5000
 sleepamt = 0.1
 
-e = None
+E = None
+P = None
 
 def load_huge_ints_from_bin(filename: str) -> list[int]: #Method code by AI
     results = []
@@ -149,7 +151,7 @@ def load_base_on_demand(base: int) -> list[int]:
 def mush(i, j):
     res = []
     
-    for N in e[i]:
+    for N in E[i]:
         r = N
         res.append(r + j)
     
@@ -204,17 +206,17 @@ def binai(args, verbose=True):
     
     nums = []
     
-    fillprimes = FOUND_PRIMES.__len__()-1
+    fillprimes = len(P)-1
     
     loopamt = 1
     
-    if args.__len__() >= 3:
+    if len(args) >= 3:
         loopamt = int(args[2])
     
     for a_ in range(loopamt):
         y = 0
         while y <= fillprimes:
-            nums.append(yes(FOUND_PRIMES[y]))
+            nums.append(yes(P[y]))
             y += 1
         
         bval = '00000000'
@@ -237,7 +239,7 @@ def binai(args, verbose=True):
                 while c_r < sz-c_sz:
                     r += '1'
                     c_r += 1
-                while r.__len__() < sz:
+                while len(r) < sz:
                     r += '0'
                     c_r += 1
                 ye.val = r
@@ -256,9 +258,6 @@ def binai(args, verbose=True):
                 if not DEV["SPICYCPU"] and c_sz % sleepgen == 0:
                     time.sleep(sleepamt)
             c_sz += 1
-    
-    FOUND_PRIMES.sort()
-    
     return result
 
 '''
@@ -331,7 +330,7 @@ def loop(a, b):
     
     while r <= b:
         result = mush(a, r + STORAGE["LOOP"])
-        if result.__len__() == 0:
+        if len(result) == 0:
             pass
             #pprint("(No results! Is the number a power of another root number?")
         else:
@@ -401,7 +400,7 @@ def bleat(workerid, args):
     
 
 def seed(cap, pcap):
-    e.clear()
+    E.clear()
     pprint("[Seeding numeric algorithm...]")
     inc = 2
     i = 2
@@ -420,11 +419,11 @@ def seed(cap, pcap):
         i = 2
         
         
-        e[inc] = [kung(inc, 1)]
+        E[inc] = [kung(inc, 1)]
         
         while i < pcap:
             h = nummy.exp(i)
-            e[inc].append(h)
+            E[inc].append(h)
             i += 1
         if inc % cooldown == 0:
             #pprint(e[inc])
@@ -447,7 +446,7 @@ def printarraywithfiltration(arr,pr=True):
     
     print("@@@@@@@")
     print("Array Length: " + str(len(arr)))#@
-    print("Total Primes In Memory: " + str(len(FOUND_PRIMES)))#@
+    print("Total Primes In Memory: " + str(len(P)))#@
     print("@@@@@@@")
     
     for t in arr:
@@ -455,32 +454,15 @@ def printarraywithfiltration(arr,pr=True):
         if isprime(t):
             prt += '*'
             if DEV["OPRIME"]:
-                if not t in FOUND_PRIMES:
-                    FOUND_PRIMES.append(t)
+                if not t in P:
+                    P.append(t)
             
         if pr and (not DEV["PRIME"] or isprime(t)):
             print(prt)
-
-if __name__ == "__main__":
-    sys.set_int_max_str_digits(0)
-    # Get current soft and hard limits for virtual memory
-    soft, hard = resource.getrlimit(resource.RLIMIT_AS)
-    
-    # Syscall to raise the soft limit to the system's hard ceiling
-    resource.setrlimit(resource.RLIMIT_AS, (hard, hard))
-    
-    pprint("Bleatmind say hello!")
-    
-    #We all know I was right to write the original pprint listed on this line, and also right to delete it from the internet.
-    pprint("Now this is someone we can trust with humanity's future!\nAm I Right, Gamers?")
-
-    #@ Instantiate globally or attach to your DEV/config dict
-    TOFILEOUT = TeeStdout("mugo_debug.log")
-    TOFILEOUT.toggle(enable=True)
-    e = {}
+            
+def Console():
     res = ''
     cmdstart = datetime.now()
-
     while not res == "Q":
         if not res == '':
             pprint("Completed last command in " + str(datetime.now() - cmdstart))
@@ -489,31 +471,73 @@ if __name__ == "__main__":
         
         cmdstart = datetime.now()
         
-        pprint(res)
+        pprint("Running command { " + res + " }")
         
         if res.startswith("FLAG"):
             split = res.split(' ')
-            if split.__len__() >= 2:
+            if len(split) >= 2:
                 setflag(split[1])
                 
                 pprint("Flag " + split[1] + " set to: " + str(DEV[split[1]]))
-        
         ##########################
         if res.startswith('SET'):
             split = res.split(' ')
-            if split.__len__() >= 3:
+            if len(split) >= 3:
                 spf = sympify(split[2])
                 rr = int(spf)
                 STORAGE[split[1]] = (rr)
                 pprint(f"{BLUE}Set " + split[1] + " storage to " + str(STORAGE[split[1]]) + f"{RESET}")
-        
-        if res.startswith("SAV "): #Saving code by AI
+        ###########################
+        if res.startswith("SEED"):
+            split = res.split(" ")
+            pprint(split)
+            if len(split) >= 2:
+                if split[1].isnumeric() and split[2].isnumeric():
+                    cap = int(split[1])
+                    pcap = int(split[2])
+                    
+                    seed(cap, pcap)
+        #######################
+        '''
+        @@@
+        '''
+        if res.startswith("LD"): #Take a peek in a .bin file
+            split = res.split(' ')
+            if len(split) > 1 and split[1].isnumeric():
+                ree = load_huge_ints_from_bin("tables/" + str(int(split[1]) // 100) + "/p_" + split[1] + ".bin")
+                pprint(ree)
+            elif split[1] == "PRIMES":
+                ree = load_huge_ints_from_bin("output/found_primes.bin")
+                printarraywithfiltration(ree)
+            elif split[1] == "TABLE":
+                table_path = Path(TABLE_DIR)
+                
+                # Recursively find all .bin files across all subdirectories
+                bin_files = sorted(table_path.rglob("*.bin"))
+                print(f"Total .bin files: {len(bin_files)}")
+                
+                for file_path in bin_files:
+                    # Extract the integer index from the filename (e.g., 'p_5.bin' -> 5)
+                    # Assumes filenames follow 'p_<index>.bin'
+                    try:
+                        i = int(file_path.stem.split('_')[1])
+                        if i >= 2:
+                            E[i] = load_huge_ints_from_bin(str(file_path))
+                    except (IndexError, ValueError):
+                        continue
+        '''
+        @@@
+        '''
+        '''
+        @#@
+        '''
+        if res.startswith("SV "): #Saving code by AI
             ctr = 0
             
             split = res.split(' ')
             
             if split[1] == "TABLE":#NOTE: Presently, this doesn't save multiples of ten. It's funnier to leave it like this, as the program is still deeply performant. What has One Zero ever done for me, anyways?
-                for q in e.keys():
+                for q in E.keys():
                     curfolder = "" + str(ctr // 100)
                     
                     filepath = Path(TABLE_DIR + curfolder + "/p_" + str(q) + ".bin")
@@ -522,7 +546,7 @@ if __name__ == "__main__":
                     filepath.parent.mkdir(parents=True, exist_ok=True)#@
                     
                     with open(filepath, "wb") as f:
-                            v = e[q]
+                            v = E[q]
                             for num in v:
                                 # Determine how many bytes are needed for this specific integer
                                 byte_len = (num.bit_length() + 7) // 8
@@ -539,10 +563,10 @@ if __name__ == "__main__":
                 #@ Create parent directories if they don't exist
                 filepath.parent.mkdir(parents=True, exist_ok=True)#@
                 
-                FOUND_PRIMES.sort()
+                P.sort()
                 
                 with open(filepath, "wb") as f:
-                        for num in FOUND_PRIMES:
+                        for num in P:
                             # Determine how many bytes are needed for this specific integer
                             byte_len = (num.bit_length() + 7) // 8
                             
@@ -550,48 +574,13 @@ if __name__ == "__main__":
                             f.write(byte_len.to_bytes(2, byteorder="big"))
                             f.write(num.to_bytes(byte_len, byteorder="big"))
                 ctr += 1
-                
-        ##########################
-        
-        if res.startswith("SEED"):
-            split = res.split(" ")
-            pprint(split)
-            if split.__len__() >= 2:
-                if split[1].isnumeric() and split[2].isnumeric():
-                    cap = int(split[1])
-                    pcap = int(split[2])
-                    
-                    seed(cap, pcap)
-        ############
-        if res == 'TABLE':#@
-            table_path = Path(TABLE_DIR)
-            
-            # Recursively find all .bin files across all subdirectories
-            bin_files = sorted(table_path.rglob("*.bin"))
-            print(f"Total .bin files: {len(bin_files)}")
-            
-            for file_path in bin_files:
-                # Extract the integer index from the filename (e.g., 'p_5.bin' -> 5)
-                # Assumes filenames follow 'p_<index>.bin'
-                try:
-                    i = int(file_path.stem.split('_')[1])
-                    if i >= 2:
-                        e[i] = load_huge_ints_from_bin(str(file_path))
-                except (IndexError, ValueError):
-                    continue
-        #######################
-        if res.startswith("LD"): #Take a peek in a .bin file
-            split = res.split(' ')
-            if split.__len__() > 1 and split[1].isnumeric():
-                ree = load_huge_ints_from_bin("tables/" + str(int(split[1]) // 100) + "/p_" + split[1] + ".bin")
-                pprint(ree)
-            elif split[1] == "PRIMES":
-                ree = load_huge_ints_from_bin("output/found_primes.bin")
-                printarraywithfiltration(ree)
+        '''
+        @#@
+        '''
         ##########################
         if res.startswith("LCHAIM"):
             split = res.split(' ')
-            if split.__len__() >= 4:
+            if len(split) >= 4:
                 bnd = int(split[1])
                 bnd *= int(split[2])
                 bnd *= pow(10, 10)
@@ -608,7 +597,7 @@ if __name__ == "__main__":
                 with mp.Pool(processes=loopies) as pool:
                     for y in range(1, loopies):
                         #@ pool.map runs count_to_ten for each core ID and collects return values
-                        rezzy.append(pool.map(lchaim, [(bnd*y), (bnd * y * 2), (bnd * y * 3)]))
+                        rezzy.append(pool.map(lchaim, [(bnd), (bnd+4), (bnd+8)]))
                     
                     #@ 2. Wait for all processes to complete before continuing
                     for p in PROCESSES:
@@ -626,12 +615,12 @@ if __name__ == "__main__":
         ##########################
         if res.startswith("BINAI"):
             split = res.split(' ')
-            if split.__len__() >= 2:
+            if len(split) >= 2:
                 printarraywithfiltration(binai(split, DEV["VBINAI"]))
         ##########################
         if res.startswith("LOOP"):
             split = res.split(' ')
-            if split.__len__() >= 2:
+            if len(split) >= 2:
                 if split[1].isnumeric() and split[2].isnumeric():
                         printarraywithfiltration(loop(int(split[1]), int(split[2]))) 
         ########################
@@ -663,19 +652,45 @@ if __name__ == "__main__":
                         print("Found " + str(len(result)) + " primes in range!")
                         uniq = 0
                         for q in result:#Assumes primality check in bleat
-                            if not q in FOUND_PRIMES:
-                                FOUND_PRIMES.append(q)
+                            if not q in P:
+                                P.append(q)
                                 uniq += 1
                         print("Added " + str(uniq) + " primes to memory!")
-                        print("Total primes in memory: " + str(len(FOUND_PRIMES)))
+                        print("Total primes in memory: " + str(len(P)))
         ########################
-        if res.isnumeric():
+        
+        ########################
+        if res.isnumeric():#TODO rework into a discrete command; Checks for number entries loaded in memory, where LD checks number values saved to disk.
             result = mush(int(res), STORAGE["LOOP"])
-            if result.__len__() == 0:
+            if len(result) == 0:
                 pprint("(No results! Is the number a power of another root number?")
             else:
                 pprint("RESULTS FOUND")
                 printarraywithfiltration(result)
                                 
         
+
+if __name__ == "__main__":
+    sys.set_int_max_str_digits(0)
+    # Get current soft and hard limits for virtual memory
+    soft, hard = resource.getrlimit(resource.RLIMIT_AS)
+    
+    # Syscall to raise the soft limit to the system's hard ceiling
+    resource.setrlimit(resource.RLIMIT_AS, (hard, hard))
+    
+    pprint("Bleatmind say hello!")
+    
+    #We all know I was right to write the original pprint listed on this line, and also right to delete it from the internet.
+    pprint("Now this is someone we can trust with humanity's future!\nAm I Right, Gamers?")
+
+    #@ Instantiate globally or attach to your DEV/config dict
+    TOFILEOUT = TeeStdout("mugo_debug.log")
+    TOFILEOUT.toggle(enable=True)
+    E = {}
+    P = [
+            1 , 2 , 3 , 5 , 7
+        ]
+    
+    Console()
+    pprint("Program closing, thanks for playing!")
         
