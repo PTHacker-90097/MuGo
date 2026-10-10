@@ -1,5 +1,4 @@
-This code invokes the MIT usage license;
-
+USAGE LICENSE
 In short, don't impersonate me or claim you wrote code you didn't.
 You are not allowed to resell this code or otherwise monetize it without my explicit permission and a contract.
 Any invocation of this code or copying its principles & specificities within your own code must include a URL link to this repository, as well as my legal name ("David Root") and my affirmed name / "alias," "Pamela Thacker"
@@ -38,3 +37,4 @@ FAQ
 "Do you use AI??? Vibe code????"
 -> Only when reading the docs for a given library is more torturous than that three-part root canal I had once.
 -> The above means yes, as needed, for example code.
+
