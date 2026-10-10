@@ -3,3 +3,4 @@ tables/
 mugo_debug.log
 /output
 /tables
+/.venv
