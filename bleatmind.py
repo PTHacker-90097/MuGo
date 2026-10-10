@@ -96,6 +96,21 @@ class BleatMind:
                 
         return results
     
+    def AddPrimes(self, result):
+        print("Found " + str(len(result)) + " primes in range!")
+        olen = len(self.P)
+        for q in result:#Assumes primality check in bleat
+            if q >= 2:                
+                if not q in self.P:
+                    self.P.append(q)
+            else:
+                print("Something went wrong! A number <= 1 found its way in to the pipeline!\nOffender:" + str(q))
+        print("Added " + str(len(self.P)-olen) + " unfound primes to memory!")
+        print("Total primes in memory: " + str(len(self.P)))
+    
+    '''
+    @@@
+    '''
     def load_base_on_demand(self, base: int) -> list[int]:
         """
         Reads a single base binary file on demand.
@@ -137,7 +152,7 @@ class BleatMind:
         
         nums = []
         
-        fillprimes = (len(self.P)+1) // 10
+        fillprimes = ((len(self.P)+1) // 10) + 1
         
         loopamt = 1
         
@@ -481,7 +496,7 @@ class BleatMind:
             '''
             @#@
             '''
-            if res.startswith("SV "): #Saving code by AI
+            if res.startswith("SV"): #Saving code by AI
                 ctr = 0
                 
                 split = res.split(' ')
@@ -513,10 +528,10 @@ class BleatMind:
                     #@ Create parent directories if they don't exist
                     filepath.parent.mkdir(parents=True, exist_ok=True)#@
                     
-                    P.sort()
+                    self.P.sort()
                     
                     with open(filepath, "wb") as f:
-                            for num in P:
+                            for num in self.P:
                                 # Determine how many bytes are needed for this specific integer
                                 byte_len = (num.bit_length() + 7) // 8
                                 
@@ -533,7 +548,7 @@ class BleatMind:
                 if len(split) > 2:
                     if split[1] == "PRIMES":
                         rang1 = 0
-                        rang2 = len(P)
+                        rang2 = len(self.P)
                         
                         if len(split) > 2:
                             rang1 = int(split[2])
@@ -541,10 +556,10 @@ class BleatMind:
                                 rang2 = int(split[3])
                         print(f"Showing primes loaded in range:\n {rang1}, {rang2}")
                         while rang1 < rang2:
-                            print(P[rang1])
+                            print(self.P[rang1])
                             rang1 += 1
                 else:
-                    print("Presently, there are " + str(len(P)) + " primes loaded in memory.")
+                    print("Presently, there are " + str(len(self.P)) + " primes loaded in memory.")
             #######################
             if res.startswith("LCHAIM"):
                 split = res.split(' ')
@@ -578,19 +593,24 @@ class BleatMind:
                             pprint(str(idx))
                             pprint(str(rex))
                             '''
+                            self.AddPrimes(rex[0])
                             self.printarraywithfiltration(rex[0])
                         self.PROCESSES.clear()
             ##########################
             if res.startswith("BINAI"):
                 split = res.split(' ')
                 if len(split) >= 2:
-                    self.printarraywithfiltration(self.binai(split, self.DEV["VBINAI"]))
+                    result = self.binai(split, self.DEV["VBINAI"])
+                    self.AddPrimes(result)
+                    self.printarraywithfiltration(result)
             ##########################
             if res.startswith("LOOP"):
                 split = res.split(' ')
                 if len(split) >= 2:
                     if split[1].isnumeric() and split[2].isnumeric():
-                            self.printarraywithfiltration(self.loop(int(split[1]), int(split[2]))) 
+                        result = self.loop(int(split[1]), int(split[2]))
+                        self.AddPrimes(result)
+                        #self.printarraywithfiltration(result)
             ########################
             if res.startswith("BLEAT"):
                 split = res.split(' ')
@@ -617,14 +637,7 @@ class BleatMind:
                             wid, result = future.result()
                             total_primes += len(result)
                             print(f"[+] Worker {wid} finished. Collected chunk results.")
-                            print("Found " + str(len(result)) + " primes in range!")
-                            uniq = 0
-                            for q in result:#Assumes primality check in bleat
-                                if not q in P:
-                                    P.append(q)
-                                    uniq += 1
-                            print("Added " + str(uniq) + " primes to memory!")
-                            print("Total primes in memory: " + str(len(P)))
+                            self.AddPrimes(result)
             ########################
             
             ########################
