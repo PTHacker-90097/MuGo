@@ -7,12 +7,22 @@ Created on Tue Oct  6 18:01:28 2026
 
 """
 
+'''
+AUTHOR'S NOTE:
+    Any comment of form '#@' denotes AI-Generated Comments / code snippets
+'''
+
 from bleattodisc import TeeStdout
+from ReBleat.BitBleater import BINGen
 
 from sympy import pprint, isprime, symbols, sympify, solve
 from pathlib import Path
 
 from datetime import datetime
+
+from concurrent.futures import ProcessPoolExecutor, as_completed
+import multiprocessing as mp
+
 
 import numpy as np
 import sys
@@ -65,10 +75,11 @@ RESET = "\033[0m"  # Resets formatting back to default
 TABLE_DIR = "tables/"
 
 DEV = {
-        "PRIME" : True,
-        "OUT"   : True,
-        "VBINAI": True, #"Verbose" Binai flag
-        "OPRIME": True # "Output" Primes flag
+        "PRIME"     : True,
+        "OUT"       : True,
+        "VBINAI"    : True, # "Verbose" Binai flag
+        "OPRIME"    : True,  # "Output" Primes flag
+        "SPICYCPU"  : True  # Leave as 'True' if you're OK with CPU temp spikes, otherwise set to "False" for slower runtime results but better CPU temp management
 }
 
 FOUND_PRIMES = [
@@ -79,10 +90,16 @@ STORAGE = {
         "LOOP"  : 0,
         "LCHAIM": 0,
         "BINAI" : 0,
+        "BLEAT" : 0,
     }
 
 TOFILEOUT = None
 
+NUM_CORES = mp.cpu_count()#@
+PROCESSES = []#@
+
+sleepgen = 5000
+sleepamt = 0.1
 
 e = None
 
@@ -210,7 +227,6 @@ def binai(args, verbose=True):
         
         c_sz = 0
         
-        
         while c_sz <= sz:
             r = ''
             t = 1
@@ -237,8 +253,9 @@ def binai(args, verbose=True):
                     if not h in result:
                         result.append(h)
                         lt.val = r
+                if not DEV["SPICYCPU"] and c_sz % sleepgen == 0:
+                    time.sleep(sleepamt)
             c_sz += 1
-            time.sleep(0.01)
     
     FOUND_PRIMES.sort()
     
@@ -254,14 +271,13 @@ hoping it'll catch more fish than it obliterates.
 
 It's a very 'me' kinda algorithm, honestly.
 '''
-def lchaim(bound):
+def lchaim(bound) -> list[int]:
     #"((2 ^ a) ^ r) + ((3 ^ b) ^ s)"
-    
     result = []
     
     ctr = 0
     
-    cap = bound / pow(10, 9)
+    cap = bound // pow(10, 9)
     
     while ctr <= cap:
         
@@ -298,12 +314,91 @@ def lchaim(bound):
             result.append(t2)
         if not t3 in result:
             result.append(t3)
+            
+        if not DEV["SPICYCPU"] and ctr % sleepgen == 0:
+            time.sleep(sleepamt)
         
         ctr += 1
     
     result.sort()
     
     return result
+
+def loop(a, b):
+    r = a
+    
+    compiled = []
+    
+    while r <= b:
+        result = mush(a, r + STORAGE["LOOP"])
+        if result.__len__() == 0:
+            pass
+            #pprint("(No results! Is the number a power of another root number?")
+        else:
+            for q in result:
+                if not DEV["PRIME"] or isprime(q):
+                    if q not in compiled:
+                        compiled.append(q)
+        r += 1
+    ####
+    compiled.sort()
+    
+    return compiled
+
+
+'''
+ARGS:
+Power of ten to start at,
+Power of ten to end at,
+Power of ten to increment by
+
+NOTES:
+Kindof a "what if" that had been rattling around in my head.
+I hope anyone looking at this code gets irritated enough at what I write--
+-- to start fixing it up or starting from scratch, inspired by my inefficiencies.
+
+Cheers to you if you can!
+'''
+
+def bleat(workerid, args):
+    bass = pow(10, int(args[1]))+1
+    
+    inc = pow(10, int(args[3]))
+    
+    a = bass-((workerid+1)*inc)
+    
+    div = int(args[4])
+    
+    cap = pow(10, int(args[2]))-((workerid+1)*inc)
+    
+    a += STORAGE["BLEAT"]
+    cap += STORAGE["BLEAT"]
+    
+    cands = [
+            a,
+            a+2,
+            a+6,
+            a+8
+        ]
+    
+    result = []
+    
+    while a < cap:
+        
+        cands[0] += inc
+        cands[1] += inc
+        cands[2] += inc
+        cands[3] += inc
+        
+        for i in range(len(cands)):
+            if not cands[i] in result and isprime(cands[i]):
+                result.append(cands[i])
+            cands[i] += 10#or inc, or make it its own arg        
+        a += inc
+    
+    
+    return workerid, result
+    
 
 def seed(cap, pcap):
     e.clear()
@@ -348,11 +443,11 @@ def setflag(key):
         if DEV[key]:
             TOFILEOUT.toggle()
             
-def printarraywithfiltration(arr,prt=True):
+def printarraywithfiltration(arr,pr=True):
     
     print("@@@@@@@")
-    print(len(arr))
-    print(len(FOUND_PRIMES))
+    print("Array Length: " + str(len(arr)))#@
+    print("Total Primes In Memory: " + str(len(FOUND_PRIMES)))#@
     print("@@@@@@@")
     
     for t in arr:
@@ -363,10 +458,10 @@ def printarraywithfiltration(arr,prt=True):
                 if not t in FOUND_PRIMES:
                     FOUND_PRIMES.append(t)
             
-        if prt and (not DEV["PRIME"] or isprime(t)):
+        if pr and (not DEV["PRIME"] or isprime(t)):
             print(prt)
 
-if __name__ == "__main__":    
+if __name__ == "__main__":
     sys.set_int_max_str_digits(0)
     # Get current soft and hard limits for virtual memory
     soft, hard = resource.getrlimit(resource.RLIMIT_AS)
@@ -378,13 +473,7 @@ if __name__ == "__main__":
     
     #We all know I was right to write the original pprint listed on this line, and also right to delete it from the internet.
     pprint("Now this is someone we can trust with humanity's future!\nAm I Right, Gamers?")
-    
-    
-    '''
-    AUTHOR'S NOTE:
-        Any comment of form '#@' denotes AI-Generated Comments.
-    '''
-    
+
     #@ Instantiate globally or attach to your DEV/config dict
     TOFILEOUT = TeeStdout("mugo_debug.log")
     TOFILEOUT.toggle(enable=True)
@@ -423,7 +512,7 @@ if __name__ == "__main__":
             
             split = res.split(' ')
             
-            if split[1] == "TABLE":
+            if split[1] == "TABLE":#NOTE: Presently, this doesn't save multiples of ten. It's funnier to leave it like this, as the program is still deeply performant. What has One Zero ever done for me, anyways?
                 for q in e.keys():
                     curfolder = "" + str(ctr // 100)
                     
@@ -473,7 +562,7 @@ if __name__ == "__main__":
                     pcap = int(split[2])
                     
                     seed(cap, pcap)
-        
+        ############
         if res == 'TABLE':#@
             table_path = Path(TABLE_DIR)
             
@@ -491,11 +580,10 @@ if __name__ == "__main__":
                 except (IndexError, ValueError):
                     continue
         #######################
-        
         if res.startswith("LD"): #Take a peek in a .bin file
             split = res.split(' ')
             if split.__len__() > 1 and split[1].isnumeric():
-                ree = load_huge_ints_from_bin("tables/" + str(int(split[1]) // 10) + "/p_" + split[1] + ".bin")
+                ree = load_huge_ints_from_bin("tables/" + str(int(split[1]) // 100) + "/p_" + split[1] + ".bin")
                 pprint(ree)
             elif split[1] == "PRIMES":
                 ree = load_huge_ints_from_bin("output/found_primes.bin")
@@ -503,47 +591,83 @@ if __name__ == "__main__":
         ##########################
         if res.startswith("LCHAIM"):
             split = res.split(' ')
-            if split.__len__() >= 3:
+            if split.__len__() >= 4:
                 bnd = int(split[1])
                 bnd *= int(split[2])
                 bnd *= pow(10, 10)
                 
-                printarraywithfiltration(lchaim(bnd))
+                loopies = int(split[3])
+                
+                rezzy = []
+                
+                
+                #@@@
+                
+                #@ Create a pool of worker processes
+                ctr_ = 1
+                with mp.Pool(processes=loopies) as pool:
+                    for y in range(1, loopies):
+                        #@ pool.map runs count_to_ten for each core ID and collects return values
+                        rezzy.append(pool.map(lchaim, [(bnd*y), (bnd * y * 2), (bnd * y * 3)]))
+                    
+                    #@ 2. Wait for all processes to complete before continuing
+                    for p in PROCESSES:
+                        p.join()
+                        
+                    #@@@
+                    
+                    for idx, rex in enumerate(rezzy):
+                        '''
+                        pprint(str(idx))
+                        pprint(str(rex))
+                        '''
+                        printarraywithfiltration(rex[0])
+                    PROCESSES.clear()
         ##########################
         if res.startswith("BINAI"):
             split = res.split(' ')
             if split.__len__() >= 2:
                 printarraywithfiltration(binai(split, DEV["VBINAI"]))
-        
+        ##########################
         if res.startswith("LOOP"):
             split = res.split(' ')
             if split.__len__() >= 2:
-                if split[1].isnumeric():
-                    if split[2].isnumeric():
-                        a = int(split[1])
-                        b = int(split[2])
-                        
-                        r = a
-                        
-                        compiled = []
-                        
-                        while r <= b:
-                            result = mush(a, r + STORAGE["LOOP"])
-                            if result.__len__() == 0:
-                                pass
-                                #pprint("(No results! Is the number a power of another root number?")
-                            else:
-                                for q in result:
-                                    if not DEV["PRIME"] or isprime(q):
-                                        if q not in compiled:
-                                            compiled.append(q)
-                            r += 1
-                        ####
-                        compiled.sort()
-                        printarraywithfiltration(compiled)
-        
-        
-        
+                if split[1].isnumeric() and split[2].isnumeric():
+                        printarraywithfiltration(loop(int(split[1]), int(split[2]))) 
+        ########################
+        if res.startswith("BLEAT"):
+            split = res.split(' ')
+            if len(split) >= 4:
+                result = []
+                if len(split) == 4:
+                    split.append('1')
+                    split.append('0')
+                
+                    result = bleat(split)
+                else:
+                    g = int(split[4])
+                    #@
+                    with ProcessPoolExecutor(max_workers=g) as executor:
+                        # Submit tasks across the worker pool
+                        futures = {
+                            executor.submit(bleat, i, split): i
+                            for i in range(g)
+                        }
+                    #\@
+                    print("Workers done!?")
+                    total_primes = 0
+                    for future in as_completed(futures):
+                        wid, result = future.result()
+                        total_primes += len(result)
+                        print(f"[+] Worker {wid} finished. Collected chunk results.")
+                        print("Found " + str(len(result)) + " primes in range!")
+                        uniq = 0
+                        for q in result:#Assumes primality check in bleat
+                            if not q in FOUND_PRIMES:
+                                FOUND_PRIMES.append(q)
+                                uniq += 1
+                        print("Added " + str(uniq) + " primes to memory!")
+                        print("Total primes in memory: " + str(len(FOUND_PRIMES)))
         ########################
         if res.isnumeric():
             result = mush(int(res), STORAGE["LOOP"])
