@@ -74,8 +74,8 @@ class BleatMind:
     P = []
     
     def __init__(self):
-        P = [1, 3, 5, 7]
-        E = {}
+        self.P = [1, 3, 5, 7]
+        self.E = {}
         pass
     
     def load_huge_ints_from_bin(self, filename: str) -> list[int]: #Method code by AI
@@ -271,10 +271,20 @@ class BleatMind:
         if not self.DEV["SPICYCPU"] and ctr % self.sleepgen == 0:
             time.sleep(self.sleepamt)
     
-    def loop(self, a, b):
-        r = a
+    def loop(self, args):
+        a = int(args[0])
+        b = int(args[1])
+        
+        if len(args) > 2:
+            workerid = args[2]
+        else:
+            workerid = 0
+        
+        r = int(a)
         
         compiled = []
+        
+        y = (workerid*2) + 1
         
         while r <= b:
             result = self.mush(a, r + self.STORAGE["LOOP"])
@@ -289,9 +299,9 @@ class BleatMind:
                         #--Should it be found to be part of the Roots of the Exponent Set
                         if not q in self.E and q not in compiled:
                             compiled.append(q)
+            print(f"LOOP [{workerid}]: Finished Parsing {r}")
             r += 1
         ####
-        compiled.sort()
         
         return compiled
     
@@ -369,13 +379,13 @@ class BleatMind:
             h = 0
             i = 2
             
-            
-            self.E[inc] = [kung(inc, 1)]
-            
-            while i < pcap:
-                h = nummy.exp(i)
-                self.E[inc].append(h)
-                i += 1
+            if not inc in self.E:
+                self.E[inc] = [kung(inc, 1)]
+                while i < pcap:
+                    h = nummy.exp(i)
+                    if not h in self.E[inc]:
+                        self.E[inc].append(h)
+                    i += 1
             if inc % cooldown == 0:
                 #pprint(e[inc])
                 #time.sleep(restperiod)
@@ -546,6 +556,7 @@ class BleatMind:
             if res.startswith("INS"):
                 split = res.split(' ')
                 if len(split) > 2:
+
                     if split[1] == "PRIMES":
                         rang1 = 0
                         rang2 = len(self.P)
@@ -558,6 +569,10 @@ class BleatMind:
                         while rang1 < rang2:
                             print(self.P[rang1])
                             rang1 += 1
+                elif split[1] == "E":
+                   for q in self.E:
+                       pprint(q)
+                       pprint(len(self.E))
                 else:
                     print("Presently, there are " + str(len(self.P)) + " primes loaded in memory.")
             #######################
@@ -606,9 +621,9 @@ class BleatMind:
             ##########################
             if res.startswith("LOOP"):
                 split = res.split(' ')
-                if len(split) >= 2:
+                if len(split) >= 3:
                     if split[1].isnumeric() and split[2].isnumeric():
-                        result = self.loop(int(split[1]), int(split[2]))
+                        result = self.loop([int(split[1]), int(split[2])])
                         self.AddPrimes(result)
                         #self.printarraywithfiltration(result)
             ########################
@@ -631,24 +646,23 @@ class BleatMind:
                                 for i in range(g)
                             }
                         #\@
-                        print("Workers done!?")
                         total_primes = 0
                         for future in as_completed(futures):
                             wid, result = future.result()
                             total_primes += len(result)
                             print(f"[+] Worker {wid} finished. Collected chunk results.")
                             self.AddPrimes(result)
-            ########################
-            
-            ########################
-            if res.isnumeric():#TODO rework into a discrete command; Checks for number entries loaded in memory, where LD checks number values saved to disk.
-                result = self.mush(int(res), self.STORAGE["LOOP"])
-                if len(result) == 0:
-                    pprint("(No results! Is the number a power of another root number?")
-                else:
-                    pprint("RESULTS FOUND")
-                    self.printarraywithfiltration(result)
-                                    
+                ########################
+                
+                ########################
+                if res.isnumeric():#TODO rework into a discrete command; Checks for number entries loaded in memory, where LD checks number values saved to disk.
+                    result = self.mush(int(res), self.STORAGE["LOOP"])
+                    if len(result) == 0:
+                        pprint("(No results! Is the number a power of another root number?")
+                    else:
+                        pprint("RESULTS FOUND")
+                        self.printarraywithfiltration(result)
+                                        
             
     
 if __name__ == "__main__":

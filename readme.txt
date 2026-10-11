@@ -12,6 +12,7 @@ FAQ
 -> Human psychology & learning,
 -> DNA sequencing & pattern finding,
 -> Brain scanning / memory storage & retrieval technology.
+-> File Compression & Unique Cryptographic Storage Techniques
 ->
 -> My dearest hope is that my work can aid the next wave of technology in terms of:
 -> Creation of finer AI tools for assistive devices & cybernetics

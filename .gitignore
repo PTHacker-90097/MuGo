@@ -4,3 +4,8 @@ mugo_debug.log
 /output
 /tables
 /.venv
+/impudent drafts
+/table backups
+/.spyproject
+/.spyproject/config
+/.spyproject/config/backups
