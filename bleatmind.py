@@ -21,7 +21,7 @@ from bleattodisc import TeeStdout
 from ReBleat.BitBleater import BINGen
 from numerics import kung, yes
 
-from sympy import pprint, isprime, symbols, sympify, solve
+from sympy import pprint, isprime, symbols, sympify, solve, root
 from pathlib import Path
 
 from datetime import datetime
@@ -252,11 +252,11 @@ class BleatMind:
             while t3 % 2 == 0 or t3 % 3 == 0 or t3 % 5 == 0 or t3 % 7 == 0:
                 t3 += 1
             
-            if not t1 in result:
+            if isprime(t1) and not t1 in self.P and not t1 in result:
                 result.append(t1)
-            if not t2 in result:
+            if isprime(t2) and not t1 in self.P and not t2 in result:
                 result.append(t2)
-            if not t3 in result:
+            if isprime(t3) and not t1 in self.P and not t3 in result:
                 result.append(t3)
                 
             self.sleepcheck(ctr)
@@ -599,7 +599,7 @@ class BleatMind:
                     with mp.Pool(processes=loopies) as pool:
                         for y in range(1, loopies):
                             #@ pool.map runs count_to_ten for each core ID and collects return values
-                            rezzy.append(pool.map(self.lchaim, [(bnd), (bnd+4), (bnd+8)]))
+                            rezzy.append(pool.map(self.lchaim, [(bnd//(loopies//(y))), (bnd*y), (bnd*(loopies//(y)))]))
                         
                         #@ 2. Wait for all processes to complete before continuing
                         for p in self.PROCESSES:
