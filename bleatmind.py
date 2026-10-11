@@ -101,9 +101,9 @@ class BleatMind:
         olen = len(self.P)
         for q in result:#Assumes primality check in bleat
             if q >= 2:                
-                if not q in self.P:
+                if not q in self.P and isprime(q):
                     self.P.append(q)
-            else:
+            elif not q == 1:
                 print("Something went wrong! A number <= 1 found its way in to the pipeline!\nOffender:" + str(q))
         print("Added " + str(len(self.P)-olen) + " unfound primes to memory!")
         print("Total primes in memory: " + str(len(self.P)))
@@ -560,14 +560,18 @@ class BleatMind:
                     if split[1] == "PRIMES":
                         rang1 = 0
                         rang2 = len(self.P)
-                        
+                        self.P.sort()
                         if len(split) > 2:
                             rang1 = int(split[2])
                             if len(split) > 3:
                                 rang2 = int(split[3])
                         print(f"Showing primes loaded in range:\n {rang1}, {rang2}")
                         while rang1 < rang2:
-                            print(self.P[rang1])
+                            q = self.P[rang1]
+                            if isprime(q):
+                                print(q)
+                            else:
+                                print(f"Somehow a non-prime number {q} made it into the primes list! Mayday!")
                             rang1 += 1
                 elif split[1] == "E":
                    for q in self.E:
@@ -609,7 +613,6 @@ class BleatMind:
                             pprint(str(rex))
                             '''
                             self.AddPrimes(rex[0])
-                            self.printarraywithfiltration(rex[0])
                         self.PROCESSES.clear()
             ##########################
             if res.startswith("BINAI"):
