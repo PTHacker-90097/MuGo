@@ -30,6 +30,8 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 import multiprocessing as mp
 
 
+from bitarry import bitarray
+
 import numpy as np
 import sys
 import time
@@ -145,7 +147,7 @@ class BleatMind:
         
         return res
     
-    def binai(self, args, verbose=True):
+    def binai(self, args):
         #Size (In bits) of values
         sz = kung(2, int(args[1]))
         #inc = int(args[2])
@@ -191,16 +193,20 @@ class BleatMind:
                     ye.val = r
                     t = ye.get() + 1
                     t += self.STORAGE["BINAI"]
-                    if verbose:
-                        if not t in result and isprime(t):
-                            result.append(t)
-                        g = yes(ye).AND(lt)
-                        if not g in result and isprime(g):
-                            result.append(g)
-                        h = t + lt.get()
-                        if not h in result and isprime(h):
-                            result.append(h)
-                            lt.val = r
+                    if not t in result and not t in self.P and isprime(t):
+                        print("BINAI: Found another prime! Total size: " + str(len(self.P) ))
+                        result.append(t)
+                    
+                    g = yes(ye).AND(lt)
+                    if not g in result and not t in self.P and isprime(g):
+                        result.append(g)
+                        print("BINAI: Found another prime! Total size: " + str(len(self.P) ))
+                        
+                    h = t + lt.get()
+                    if not h in result and not t in self.P and isprime(h):
+                        result.append(h)
+                        print("BINAI: Found another prime! Total size: " + str(len(self.P) ))
+                        
                     self.sleepcheck(c_sz)
                 c_sz += 1
         return result
@@ -618,7 +624,8 @@ class BleatMind:
             if res.startswith("BINAI"):
                 split = res.split(' ')
                 if len(split) >= 2:
-                    result = self.binai(split, self.DEV["VBINAI"])
+                    result = self.binai(split
+                                        )
                     self.AddPrimes(result)
                     self.printarraywithfiltration(result)
             ##########################
