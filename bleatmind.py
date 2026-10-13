@@ -30,7 +30,8 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 import multiprocessing as mp
 
 
-from bitarry import bitarray
+from bitarray import bitarray
+from bitarray.util import int2ba
 
 import numpy as np
 import sys
@@ -167,47 +168,58 @@ class BleatMind:
                 nums.append(yes(self.P[y]))
                 y += 1
             
-            bval = '00000000'
-            
-            val = bval
-            
             result = []
             
             lt = yes(2)
             
             c_sz = 0
             
+            candmods = [
+                    -7,
+                    -1,
+                     1,
+                     7
+                    
+                ]
+            
             while c_sz <= sz:
-                r = ''
                 t = 1
                 for ye in nums:
                     
                     c_r = 0
+                    pw = 1
+                    dummy = int(0)
                     
-                    while c_r < sz-c_sz:
-                        r += '1'
+                    while c_r < sz:
+                        if pw < (sz-c_r):
+                            dummy += pow(2, pw)
+                            pw += 1
                         c_r += 1
-                    while len(r) < sz:
-                        r += '0'
-                        c_r += 1
-                    ye.val = r
-                    t = ye.get() + 1
-                    t += self.STORAGE["BINAI"]
-                    if not t in result and not t in self.P and isprime(t):
-                        print("BINAI: Found another prime! Total size: " + str(len(self.P) ))
-                        result.append(t)
-                    
-                    g = yes(ye).AND(lt)
-                    if not g in result and not t in self.P and isprime(g):
-                        result.append(g)
-                        print("BINAI: Found another prime! Total size: " + str(len(self.P) ))
+                    ye.val = int2ba(dummy).to01()
+                    for ree in candmods:
+                        t = ye.get() + ree
+                        t += self.STORAGE["BINAI"]
                         
-                    h = t + lt.get()
-                    if not h in result and not t in self.P and isprime(h):
-                        result.append(h)
-                        print("BINAI: Found another prime! Total size: " + str(len(self.P) ))
+                        '''
+                        while not t % 1 == 0 and not t % 3 == 0 and not t % 7 == 0 and not t % 9 == 0:
+                            t += 1
+                        '''
                         
-                    self.sleepcheck(c_sz)
+                        if not t in result and not t in self.P and isprime(t):
+                            print("BINAI: Found another prime! Total Payload size: " + str(len(result) ))
+                            result.append(t)
+                        
+                        g = yes(ye).AND(lt)
+                        if not g in result and not t in self.P and isprime(g):
+                            result.append(g)
+                            print("BINAI: Found another prime! Total Payload size: " + str(len(result) ))
+                            
+                        h = t + lt.get()
+                        if not h in result and not t in self.P and isprime(h):
+                            result.append(h)
+                            print("BINAI: Found another prime! Total Payload size: " + str(len(result) ))
+                            
+                    #self.sleepcheck(c_sz)
                 c_sz += 1
         return result
     
@@ -299,12 +311,9 @@ class BleatMind:
                 #pprint("(No results! Is the number a power of another root number?")
             else:
                 for q in result:
-                    if not self.DEV["PRIME"] or isprime(q):
-                        #not q in self.E is experimental;
-                        #Intent is to immediately filter out a candidate--
-                        #--Should it be found to be part of the Roots of the Exponent Set
-                        if not q in self.E and q not in compiled:
-                            compiled.append(q)
+                    if not q in compiled and isprime(q) and not q in self.P:
+                        print("LOOP: Found another prime! Total Payload Size: " + str(len(compiled)+1))
+                        compiled.append(q)
             print(f"LOOP [{workerid}]: Finished Parsing {r}")
             r += 1
         ####
@@ -488,8 +497,21 @@ class BleatMind:
                     ree = self.load_huge_ints_from_bin("tables/" + str(int(split[1]) // 100) + "/p_" + split[1] + ".bin")
                     pprint(ree)
                 elif split[1] == "PRIMES":
-                    ree = self.load_huge_ints_from_bin("output/found_primes.bin")
-                    self.printarraywithfiltration(ree)
+                    primes_path = Path("output/primes/")
+                    
+                    # Recursively find all .bin files across all subdirectories
+                    bin_files = sorted(primes_path.rglob("*.bin"))
+                    print(f"Total .bin files: {len(bin_files)}")
+                    
+                    for file_path in bin_files:
+                        # Extract the integer index from the filename (e.g., 'p_5.bin' -> 5)
+                        # Assumes filenames follow 'p_<index>.bin'
+                        try:
+                            filler = self.load_huge_ints_from_bin(str(file_path))
+                            for q in filler:
+                                self.P.append(q)
+                        except (IndexError, ValueError):
+                            continue
                 elif split[1] == "TABLE":
                     table_path = Path(self.TABLE_DIR)
                     
@@ -537,9 +559,7 @@ class BleatMind:
                                     f.write(num.to_bytes(byte_len, byteorder="big"))
                         ctr += 1
                 elif split[1] == "PRIMES":
-                    curfolder = "output"
-                    
-                    filepath = Path(curfolder + "/found_primes" + ".bin")
+                    filepath = Path("output/primes/prime_export_" + str(datetime.now()) + ".bin")
                     
                     #@ Create parent directories if they don't exist
                     filepath.parent.mkdir(parents=True, exist_ok=True)#@
@@ -548,12 +568,13 @@ class BleatMind:
                     
                     with open(filepath, "wb") as f:
                             for num in self.P:
-                                # Determine how many bytes are needed for this specific integer
-                                byte_len = (num.bit_length() + 7) // 8
-                                
-                                # Write 2-byte header (length of integer) + raw integer bytes
-                                f.write(byte_len.to_bytes(2, byteorder="big"))
-                                f.write(num.to_bytes(byte_len, byteorder="big"))
+                                if num > 7:#Don't include the base prime sequence
+                                    # Determine how many bytes are needed for this specific integer
+                                    byte_len = (num.bit_length() + 7) // 8
+                                    
+                                    # Write 2-byte header (length of integer) + raw integer bytes
+                                    f.write(byte_len.to_bytes(2, byteorder="big"))
+                                    f.write(num.to_bytes(byte_len, byteorder="big"))
                     ctr += 1
             '''
             @#@
