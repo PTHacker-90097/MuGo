@@ -80,4 +80,14 @@ def kung(v, e, pao=pow(10, 10)):
         return -1
 
 
-
+'''
+Couldn't decide between "Sigma," "Ligma," or "Slugma"
+    So I went ahead and split the difference.
+'''
+def sligma(arr):
+    res = 0
+    
+    for q in arr:
+        res += q
+    
+    return res

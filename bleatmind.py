@@ -63,6 +63,7 @@ class BleatMind:
             "LCHAIM": 0,
             "BINAI" : 0,
             "BLEAT" : 0,
+            "BLEATBOX" : 0,
         }
     
     TOFILEOUT = None
@@ -341,6 +342,70 @@ class BleatMind:
         
         return compiled
     
+    '''
+    10/13/26
+    
+    Repeat after me:
+        It's a skooby-ooby-doobie,
+        skoobie-oobie-MeLoDii'
+    '''
+    def bibalabada(self, start = 1, jump = 4, maxIterations=1):
+        results = []
+        
+        maxIterations = (len(self.P) // jump)-1
+        
+        try:
+            ind = start
+            N = 2
+            M = 3
+            
+            Z = [
+                    -1,
+                     1
+                ]
+            
+            iterations = 1
+            
+            kachow = N * M + self.STORAGE["BLEATBOX"]
+            
+            curchow = 1
+            spring = 1
+            sprongs = 1
+            
+            while iterations <= maxIterations:
+                candi = kachow * curchow
+                
+                for z in Z:
+                    ayy = candi + z
+                    #pprint(str(ayy) + " // " + str(candi) + " + " + str(z))
+                    if not ayy in results and isprime(ayy):
+                        results.append(ayy)
+                
+                spring +=1
+                
+                if spring == jump:
+                    ind += 1
+                    
+                    N = self.P[ind*sprongs*jump]
+                    M = self.P[ind]
+                    
+                    Z = [
+                            -M,
+                             M
+                        ]
+                    
+                    
+                    spring = 1
+                    sprongs += 1
+                
+                iterations += 1
+        except:#Intentional
+            print("ERROR: Can;t.")
+            print("Try adding more primes")    
+            
+        pprint(results)    
+        
+        return results
     
     '''
     ARGS:
@@ -683,29 +748,32 @@ class BleatMind:
             ########################
             if res.startswith("BLEAT"):
                 split = res.split(' ')
-                if len(split) >= 4:
-                    result = []
-                    if len(split) == 4:
-                        split.append('1')
-                        split.append('0')
-                    
-                        result = self.bleat(split)
-                    else:
-                        g = int(split[4])
-                        #@
-                        with ProcessPoolExecutor(max_workers=g) as executor:
-                            # Submit tasks across the worker pool
-                            futures = {
-                                executor.submit(self.bleat, i, split): i
-                                for i in range(g)
-                            }
-                        #\@
-                        total_primes = 0
-                        for future in as_completed(futures):
-                            wid, result = future.result()
-                            total_primes += len(result)
-                            print(f"[+] Worker {wid} finished. Collected chunk results.")
-                            self.AddPrimes(result)
+                if res.startswith("BLEATBOX"):
+                    self.AddPrimes(self.bibalabada())
+                else:
+                    if len(split) >= 4:
+                        result = []
+                        if len(split) == 4:
+                            split.append('1')
+                            split.append('0')
+                        
+                            result = self.bleat(split)
+                        else:
+                            g = int(split[4])
+                            #@
+                            with ProcessPoolExecutor(max_workers=g) as executor:
+                                # Submit tasks across the worker pool
+                                futures = {
+                                    executor.submit(self.bleat, i, split): i
+                                    for i in range(g)
+                                }
+                            #\@
+                            total_primes = 0
+                            for future in as_completed(futures):
+                                wid, result = future.result()
+                                total_primes += len(result)
+                                print(f"[+] Worker {wid} finished. Collected chunk results.")
+                                self.AddPrimes(result)
                 ########################
                 
                 ########################
