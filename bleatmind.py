@@ -144,9 +144,25 @@ class BleatMind:
         
         for N in self.E[i]:
             r = N
-            res.append(r + j)
+            rr = r + j
+            if(not rr in res and isprime(rr)):
+                res.append(rr)
         
         return res
+    
+    def reversepaste(self, i, j):
+        res = []
+        
+        j = str(j)
+        
+        for N in self.E[i]:
+            r = str(N)
+            rr = int(r + j)
+            if(not rr in res and isprime(rr)):
+                res.append(rr)
+        
+        return res
+        
     
     def binai(self, args):
         #Size (In bits) of values
@@ -306,12 +322,17 @@ class BleatMind:
         
         while r <= b:
             result = self.mush(a, r + self.STORAGE["LOOP"])
+            extra = self.reversepaste(a, r + self.STORAGE["LOOP"])
             if len(result) == 0:
                 pass
                 #pprint("(No results! Is the number a power of another root number?")
             else:
                 for q in result:
-                    if not q in compiled and isprime(q) and not q in self.P:
+                    if not q in compiled and not q in self.P:
+                        print("LOOP: Found another prime! Total Payload Size: " + str(len(compiled)+1))
+                        compiled.append(q)
+                for q in extra:
+                    if not q in compiled and not q in self.P:
                         print("LOOP: Found another prime! Total Payload Size: " + str(len(compiled)+1))
                         compiled.append(q)
             print(f"LOOP [{workerid}]: Finished Parsing {r}")
@@ -368,6 +389,7 @@ class BleatMind:
             for i in range(len(cands)):
                 if not cands[i] in result and isprime(cands[i]):
                     result.append(cands[i])
+                    print("BLEAT: Found another prime! Current payload amount: " + str(len(result)))
                 cands[i] += 10#or inc, or make it its own arg        
             a += inc
         
@@ -509,7 +531,8 @@ class BleatMind:
                         try:
                             filler = self.load_huge_ints_from_bin(str(file_path))
                             for q in filler:
-                                self.P.append(q)
+                                if not q in self.P:
+                                    self.P.append(q)
                         except (IndexError, ValueError):
                             continue
                 elif split[1] == "TABLE":
